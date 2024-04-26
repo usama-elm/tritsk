@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "tritsk"
+version = "0.0.1-alpha"
+description = "A simple school project Task Management App"
+authors = ["Usama EL MOUSTAMIDE <usama@usama.pro>"]
+license = "GPLv3"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+litestar = "^2.8.2"
+toolz = "^0.12.1"
+sqlalchemy = "^2.0.29"
+pyfunctional = "^1.5.0"
+python-dotenv = "^1.0.1"
+pytest = "^8.1.1"
+
+
+[tool.poetry.group.standard.dependencies]
+litestar = "^2.8.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
