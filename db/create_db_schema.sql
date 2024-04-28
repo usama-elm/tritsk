@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS tasks (
     content TEXT,
     date_creation TIMESTAMP WITH TIME ZONE DEFAULT now(),
     priority_id BIGINT NOT NULL REFERENCES priority(id) ON UPDATE CASCADE ON DELETE NO ACTION,
-    deadline TIMESTAMP
+    deadline DATE
 );
 
 CREATE TABLE IF NOT EXISTS projects (
