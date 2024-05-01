@@ -69,7 +69,7 @@ project_user_rel = Table(
 task_user_rel = Table(
     "task_user_rel",
     tables_metadata,
-    Column("task_id", BigInteger, ForeignKey("tasks.id"), key="id"),
+    Column("task_id", BigInteger, ForeignKey("tasks.id"), key="task_id"),
     Column("project_id", BigInteger, ForeignKey("projects.id"), key="project_id"),
     Column("user_id", UUID, ForeignKey("users.id"), key="user_id"),
 )

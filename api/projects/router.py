@@ -76,6 +76,9 @@ def delete_project(
     )
 
 
+## TODO: Get list of projects by user
+
+
 project_router = Router(
     path="/projects",
     route_handlers=[

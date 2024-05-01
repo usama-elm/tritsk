@@ -1,18 +1,38 @@
 from typing import Any
 
-from sqlalchemy import select
+from litestar.exceptions import HTTPException
+from sqlalchemy import and_, select
 from sqlalchemy.orm import Session
 
-from api.tables import tasks
+from api.tables import task_user_rel, tasks
 
 
 def get_task_by_id(
     session: Session,
+    user_id: str,
     id: int,
 ) -> dict[str, Any] | None:
-    stmt = select(tasks).where(tasks.c.id == id)
+    stmt = (
+        select(tasks)
+        .join(
+            task_user_rel,
+            tasks.c.id == task_user_rel.c.task_id,
+        )
+        .where(
+            and_(
+                tasks.c.id == id,
+                task_user_rel.c.user_id == user_id,
+            )
+        )
+    )
 
     task = session.execute(stmt).fetchone()
+    if task is None:
+        raise HTTPException(
+            detail="Task does not correspond to your user",
+            status_code=400,
+        )
+    print()
     task_dict = {
         "id": task.t.id,
         "title": task.t.title,
@@ -30,9 +50,17 @@ def get_task_by_id(
 
 def get_tasks(
     session: Session,
+    user_id: str,
     ids: list[int] | None,
 ) -> list[dict[str, Any] | None]:
-    stmt = select(tasks)
+    stmt = (
+        select(tasks)
+        .join(
+            task_user_rel,
+            tasks.c.id == task_user_rel.c.task_id,
+        )
+        .where(task_user_rel.c.user_id == user_id)
+    )
     if ids:
         stmt.where(tasks.c.id._in(ids))
 

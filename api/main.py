@@ -13,7 +13,12 @@ openapi_config = OpenAPIConfig(
 )
 
 app = Litestar(
-    route_handlers=[task_router, user_router, auth_router, project_router],
+    route_handlers=[
+        auth_router,
+        task_router,
+        user_router,
+        project_router,
+    ],
     on_app_init=[jwt_auth.on_app_init],
     openapi_config=openapi_config,
 )
