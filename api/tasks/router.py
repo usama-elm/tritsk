@@ -102,4 +102,5 @@ def delete_task(
 task_router = Router(
     path="/tasks",
     route_handlers=[create_task, get_tasks, get_task_by_id, update_task, delete_task],
+    tags=["Tasks"],
 )

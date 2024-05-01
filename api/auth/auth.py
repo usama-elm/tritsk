@@ -46,5 +46,5 @@ jwt_auth = JWTAuth[Row[Any]](
     retrieve_user_handler=get_current_user,
     token_secret=JWT_SECRET,
     algorithm=ALGORITHM,
-    exclude=["/login", "/schema", "/users/create"],
+    exclude=["/login", "/schema", "/users"],
 )

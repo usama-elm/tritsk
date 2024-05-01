@@ -51,3 +51,15 @@ def get_user_by_auth_token(
             detail="Could not validate credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+
+def get_user_id_by_auth_token(token: str) -> str:
+    try:
+        token_id: str = verify_access_token(token.replace("Bearer ", ""))
+        return token_id
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
