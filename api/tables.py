@@ -1,4 +1,7 @@
+from uuid import uuid4
+
 from sqlalchemy import (
+    UUID,
     BigInteger,
     Column,
     DateTime,
@@ -15,11 +18,12 @@ tables_metadata = MetaData()
 users = Table(
     "users",
     tables_metadata,
-    Column("id", BigInteger, primary_key=True, key="id"),
+    Column("id", UUID, primary_key=True, key="id", default=uuid4),
     Column("username", String(200), key="username"),
     Column("name", String(200), key="name"),
     Column("aftername", String(200), key="aftername"),
     Column("mail", String(200), key="mail"),
+    Column("password", String(200), key="password"),
 )
 
 priority = Table(
@@ -59,7 +63,7 @@ project_user_rel = Table(
     tables_metadata,
     Column("id", BigInteger, primary_key=True, key="id"),
     Column("project_id", BigInteger, ForeignKey("projects.id"), key="project_id"),
-    Column("user_id", BigInteger, ForeignKey("users.id"), key="user_id"),
+    Column("user_id", UUID, ForeignKey("users.id"), key="user_id"),
 )
 
 task_user_rel = Table(
@@ -67,5 +71,5 @@ task_user_rel = Table(
     tables_metadata,
     Column("task_id", BigInteger, ForeignKey("tasks.id"), key="id"),
     Column("project_id", BigInteger, ForeignKey("projects.id"), key="project_id"),
-    Column("user_id", BigInteger, ForeignKey("users.id"), key="user_id"),
+    Column("user_id", UUID, ForeignKey("users.id"), key="user_id"),
 )
