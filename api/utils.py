@@ -1,10 +1,8 @@
 import re
 
 import litestar.status_codes as status
-from litestar import Request
 from litestar.exceptions import HTTPException
 from passlib.context import CryptContext
-from passlib.hash import bcrypt
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 

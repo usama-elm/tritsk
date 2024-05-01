@@ -1,7 +1,6 @@
 from datetime import datetime
-from typing import Any
 
-from litestar import Response, Router, delete, get, patch, post, put
+from litestar import Response, Router, delete, get, patch, post
 from litestar.di import Provide
 from sqlalchemy.orm import Session
 
@@ -101,6 +100,12 @@ def delete_task(
 
 task_router = Router(
     path="/tasks",
-    route_handlers=[create_task, get_tasks, get_task_by_id, update_task, delete_task],
+    route_handlers=[
+        create_task,
+        get_tasks,
+        get_task_by_id,
+        update_task,
+        delete_task,
+    ],
     tags=["Tasks"],
 )

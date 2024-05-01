@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date
 
 from sqlalchemy import delete, insert, update
 from sqlalchemy.exc import SQLAlchemyError
@@ -54,7 +54,7 @@ def update_task(
     if deadline:
         values["deadline"] = deadline
     if not values:
-        raise ValueError(f"No information given for an update")
+        raise ValueError("No information given for an update")
     try:
         stmt = update(tasks).where(tasks.c.id == id).values(**values)
         session.execute(stmt)

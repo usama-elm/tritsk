@@ -1,14 +1,11 @@
 from typing import Any
 
-from litestar import Request, Response, Router, delete, get, patch, post, put
+from litestar import Request, Response, Router, delete, patch, post
 from litestar.di import Provide
-from litestar.params import Parameter
-from litestar.security.jwt import JWTAuth, Token
+from litestar.security.jwt import Token
 from sqlalchemy.orm import Session
-from typing_extensions import Annotated
 
 import api.users.commands as commands
-import api.users.queries as queries
 from api.database import get_db
 from api.utils import get_user_id_by_auth_token
 
@@ -80,6 +77,10 @@ def delete_user(
 
 user_router = Router(
     path="/users",
-    route_handlers=[create_user, update_user, delete_user],
+    route_handlers=[
+        create_user,
+        update_user,
+        delete_user,
+    ],
     tags=["Users"],
 )

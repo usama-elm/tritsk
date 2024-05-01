@@ -3,14 +3,10 @@ from typing import Any
 from litestar import Request, Response, Router, get, post
 from litestar.di import Provide
 from litestar.exceptions import HTTPException
-from litestar.params import Parameter
-from litestar.security.jwt import JWTAuth, Token
-from sqlalchemy import Row, select
+from litestar.security.jwt import Token
+from sqlalchemy import select
 from sqlalchemy.orm import Session
-from typing_extensions import Annotated
 
-import api.users.commands as commands
-import api.users.queries as queries
 from api.auth.auth import jwt_auth
 from api.database import get_db
 from api.tables import users
@@ -26,13 +22,12 @@ def login(
     if user:
         if verify_password(password, user.password):
             le_token = jwt_auth.login(identifier=str(user.id))
-            response = Response(
+            return Response(
                 content={
                     "token": le_token.headers["Authorization"].replace("Bearer ", "")
                 },
                 status_code=200,
             )
-            return le_token
         else:
             raise HTTPException(
                 detail="Password is not valid",
@@ -59,6 +54,9 @@ def get_user_by_token(
 
 auth_router = Router(
     path="/login",
-    route_handlers=[login, get_user_by_token],
+    route_handlers=[
+        login,
+        get_user_by_token,
+    ],
     tags=["Auth"],
 )
