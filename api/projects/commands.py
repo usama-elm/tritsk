@@ -58,7 +58,7 @@ def update_project(
     if description:
         values["description"] = description
     if not values:
-        raise ValueError(f"No information given for an update")
+        raise ValueError("No information given for an update")
     if not user_id:
         raise HTTPException(
             detail="Not logged in",

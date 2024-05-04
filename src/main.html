@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Litestar and HTMX Example</title>
+    <script src="js/htmx.min.js"></script>
+</head>
+<body>
+    <h1>Litestar and HTMX Integration</h1>
+    <div hx-get="http://app-local.loc:8000/hypermedia/tasks" hx-trigger="load" hx-swap="outerHTML">
+        >
+        Loading...
+    </div>
+</body>
+</html>

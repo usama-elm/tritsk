@@ -1,10 +1,34 @@
-from litestar import Request, Response, Router, delete, patch, post
+from litestar import Request, Response, Router, delete, get, patch, post
 from litestar.di import Provide
+from litestar.exceptions import HTTPException
 from sqlalchemy.orm import Session
 
 import api.projects.commands as commands
+import api.projects.queries as queries
 from api.database import get_db
 from api.utils import get_user_id_by_auth_token
+
+
+@get(path="/", dependencies={"session": Provide(get_db, sync_to_thread=False)})
+def get_projects(
+    session: Session,
+    request: Request,
+    ids: list[int] | None = None,
+) -> Response:
+    try:
+        return Response(
+            content=queries.get_tasks(
+                ids=ids,
+                session=session,
+                user_id=get_user_id_by_auth_token(token=request.cookies["X-AUTH"]),
+            ),
+            status_code=200,
+        )
+    except KeyError:
+        raise HTTPException(
+            detail="User not logged in",
+            status_code=400,
+        )
 
 
 @post(path="/", dependencies={"session": Provide(get_db, sync_to_thread=False)})
@@ -14,20 +38,25 @@ def create_project(
     name: str,
     description: str | None = None,
 ) -> Response:
-
-    return Response(
-        content={
-            "id": commands.create_project(
-                session=session,
-                name=name,
-                description=description,
-                user_id=get_user_id_by_auth_token(
-                    token=request.headers.dict()["authorization"][0]
-                ),
-            )
-        },
-        status_code=201,
-    )
+    try:
+        return Response(
+            content={
+                "id": commands.create_project(
+                    session=session,
+                    name=name,
+                    description=description,
+                    user_id=get_user_id_by_auth_token(
+                        token=request.cookies["X-AUTH"],
+                    ),
+                )
+            },
+            status_code=201,
+        )
+    except KeyError:
+        raise HTTPException(
+            detail="User not logged in",
+            status_code=400,
+        )
 
 
 @patch(
@@ -41,21 +70,26 @@ def update_project(
     name: str | None = None,
     description: str | None = None,
 ) -> Response:
-
-    return Response(
-        content={
-            "message": commands.update_project(
-                session=session,
-                name=name,
-                description=description,
-                project_id=project_id,
-                user_id=get_user_id_by_auth_token(
-                    token=request.headers.dict()["authorization"][0]
-                ),
-            )
-        },
-        status_code=201,
-    )
+    try:
+        return Response(
+            content={
+                "message": commands.update_project(
+                    session=session,
+                    name=name,
+                    description=description,
+                    project_id=project_id,
+                    user_id=get_user_id_by_auth_token(
+                        token=request.cookies["X-AUTH"],
+                    ),
+                )
+            },
+            status_code=201,
+        )
+    except KeyError:
+        raise HTTPException(
+            detail="User not logged in",
+            status_code=400,
+        )
 
 
 @delete(
@@ -67,21 +101,25 @@ def delete_project(
     request: Request,
     project_id: int,
 ) -> None:
-    commands.delete_project(
-        session=session,
-        project_id=project_id,
-        user_id=get_user_id_by_auth_token(
-            token=request.headers.dict()["authorization"][0]
-        ),
-    )
-
-
-## TODO: Get list of projects by user
+    try:
+        commands.delete_project(
+            session=session,
+            project_id=project_id,
+            user_id=get_user_id_by_auth_token(
+                token=request.cookies["X-AUTH"],
+            ),
+        )
+    except KeyError:
+        raise HTTPException(
+            detail="User not logged in",
+            status_code=400,
+        )
 
 
 project_router = Router(
     path="/projects",
     route_handlers=[
+        get_projects,
         create_project,
         update_project,
         delete_project,

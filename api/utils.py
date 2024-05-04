@@ -1,13 +1,13 @@
 import re
 
 import litestar.status_codes as status
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 from litestar.exceptions import HTTPException
 from passlib.context import CryptContext
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from api.auth.auth import verify_access_token
-from api.auth.models import LoginUser
 from api.tables import users
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -31,18 +31,23 @@ def check_is_mail(mail: str) -> bool:
 def get_user_by_auth_token(
     token: str,
     session: Session,
-) -> LoginUser:
+) -> dict[str, str]:
     try:
         token_id: str = verify_access_token(token.replace("Bearer ", ""))
         user_db = session.execute(
             select(users).where(users.c.id == token_id)
         ).fetchone()
-        user = LoginUser(
-            id=user_db.id,
-            username=user_db.username,
-            mail=user_db.mail,
-        )
+        user = {
+            "id": user_db.id,
+            "username": user_db.username,
+            "mail": user_db.mail,
+        }
         return user
+    except KeyError:
+        raise HTTPException(
+            detail="User not logged in",
+            status_code=400,
+        )
     except Exception:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -61,3 +66,15 @@ def get_user_id_by_auth_token(token: str) -> str:
             detail="Could not validate credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+
+def JinjaEnv():
+    return Environment(
+        loader=FileSystemLoader("api/templates"),
+        autoescape=select_autoescape(["html", "xml"]),
+    )
+
+
+def render_template(template_name: str, data: dict, env: Environment):
+    template = env.get_template(template_name)
+    return template.render(data)

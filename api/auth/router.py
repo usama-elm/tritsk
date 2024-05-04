@@ -4,40 +4,30 @@ from litestar import Request, Response, Router, get, post
 from litestar.di import Provide
 from litestar.exceptions import HTTPException
 from litestar.security.jwt import Token
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from api.auth.auth import jwt_auth
+import api.auth.commands as commands
 from api.database import get_db
-from api.tables import users
-from api.utils import get_user_by_auth_token, verify_password
+from api.utils import get_user_by_auth_token
 
 
 @post(path="/", dependencies={"session": Provide(get_db, sync_to_thread=False)})
 def login(
-    request: Request, username: str, password: str, session: Session
+    username: str,
+    password: str,
+    session: Session,
 ) -> Response[dict[str, str]]:
-    stmt = select(users).where(users.c.username == username)
-    user = session.execute(stmt).fetchone()
-    if user:
-        if verify_password(password, user.password):
-            le_token = jwt_auth.login(identifier=str(user.id))
-            return Response(
-                content={
-                    "token": le_token.headers["Authorization"].replace("Bearer ", "")
-                },
-                status_code=200,
-            )
-        else:
-            raise HTTPException(
-                detail="Password is not valid",
-                status_code=400,
-            )
-    else:
-        raise HTTPException(
-            detail="User is not valid",
-            status_code=400,
-        )
+    token_str = commands.login(
+        session=session,
+        username=username,
+        password=password,
+    )
+    reponse = Response(
+        content={"token": token_str},
+        status_code=200,
+    )
+    reponse.set_cookie("X-AUTH", token_str)
+    return reponse
 
 
 @get(path="/example", dependencies={"session": Provide(get_db, sync_to_thread=False)})
@@ -45,11 +35,16 @@ def get_user_by_token(
     session: Session,
     request: Request[Any, Token, Any],
 ) -> Any:
-    print()
-    return get_user_by_auth_token(
-        token=request.headers.dict()["authorization"][0],
-        session=session,
-    )
+    try:
+        return get_user_by_auth_token(
+            token=request.cookies["X-AUTH"],
+            session=session,
+        )
+    except KeyError:
+        raise HTTPException(
+            detail="User not logged in",
+            status_code=400,
+        )
 
 
 auth_router = Router(
