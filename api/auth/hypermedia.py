@@ -1,6 +1,6 @@
-from litestar import Router, post
+from litestar import Router, get, post
 from litestar.contrib.htmx.request import HTMXRequest
-from litestar.contrib.htmx.response import ClientRedirect, HXLocation, Reswap
+from litestar.contrib.htmx.response import ClientRedirect, Reswap
 from litestar.di import Provide
 from litestar.enums import RequestEncodingType
 from litestar.exceptions import HTTPException
@@ -11,12 +11,12 @@ import api.auth.commands as commands
 from api.database import get_db
 
 
-@post(path="/", dependencies={"session": Provide(get_db, sync_to_thread=False)})
+@post(path="/login", dependencies={"session": Provide(get_db, sync_to_thread=False)})
 def login(
     session: Session,
     request: HTMXRequest,
     data: dict = Body(media_type=RequestEncodingType.URL_ENCODED),
-) -> ClientRedirect | Reswap | HXLocation:
+) -> ClientRedirect | Reswap:
     try:
         token_str = commands.login(
             session=session,
@@ -40,10 +40,25 @@ def login(
         )
 
 
+@get(path="/logout", dependencies={"session": Provide(get_db, sync_to_thread=False)})
+def logout() -> ClientRedirect:
+    response = ClientRedirect(
+        redirect_to="/src/login.html",
+    )
+    response.set_cookie(
+        key="X-AUTH",
+        value="EXPIRED",
+        domain="app-local.loc",
+        samesite="lax",
+    )
+    return response
+
+
 hypermedia_auth_router = Router(
-    path="/hypermedia/login",
+    path="/hypermedia",
     route_handlers=[
         login,
+        logout,
     ],
     tags=[
         "Hypermedia",

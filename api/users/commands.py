@@ -11,7 +11,7 @@ def create_user(
     session: Session,
     username: str,
     name: str,
-    aftername: str,
+    aftername: str | None,
     mail: str,
     password: str,
 ) -> int:

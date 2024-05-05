@@ -11,9 +11,11 @@ from litestar.template.config import TemplateConfig
 from api.auth.auth import jwt_auth
 from api.auth.hypermedia import hypermedia_auth_router
 from api.auth.router import auth_router
+from api.projects.hypermedia import hypermedia_projects_router
 from api.projects.router import project_router
 from api.tasks.hypermedia import hypermedia_tasks_router
 from api.tasks.router import task_router
+from api.users.hypermedia import hypermedia_users_router
 from api.users.router import user_router
 
 openapi_config = OpenAPIConfig(
@@ -29,6 +31,8 @@ app = Litestar(
         project_router,
         hypermedia_tasks_router,
         hypermedia_auth_router,
+        hypermedia_users_router,
+        hypermedia_projects_router,
         create_static_files_router(
             path="/src",
             directories=["src"],

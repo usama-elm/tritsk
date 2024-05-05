@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Login Page</title>
+    <title>Create User Page</title>
     <script src="js/htmx.js"></script></head>
 <body>
-    <h1>Login</h1>
-    <form action="http://app-local.loc:8000/hypermedia/login" 
+    <h1>Create User</h1>
+    <form action="http://app-local.loc:8000/hypermedia/users/create" 
           method="post" 
           hx-boost="true" 
           hx-swap="outerHTML"
@@ -15,14 +15,23 @@
         <input type="text" 
                id="username" 
                name="username" required><br>
+        <label for="name">Name:</label>
+        <input type="text" 
+               id="name" 
+               name="name" required><br>
+        <label for="aftername">Aftername:</label>
+        <input type="text" 
+               id="aftername" 
+               name="aftername" required><br>
+        <label for="mail">E-Mail:</label>
+        <input type="text" 
+               id="mail" 
+               name="mail" required><br>
         <label for="password">Password:</label>
         <input type="password" 
                id="password" 
                name="password" required><br>
-        <button type="submit">Login</button>
-        <button hx-get="http://app-local.loc:8000/src/create-user.html" hx-trigger="click" hx-push-url="http://app-local.loc:8000/src/create-user.html">
-            Create User
-        </button>    
+        <button type="submit">Create User</button>
     </form>
     <div id="another-div"></div>
 </form>

@@ -2,7 +2,7 @@
     <h1>Tasks</h1>
     <ul>
         {% for task in tasks %}
-        <li id="{{task.id}}" hx-trigger="click" hx-swap="outerHTML" hx-headers='{"Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTQ3MTYyNDQsInN1YiI6ImI4ODE5OGExLWFiMTctNDEzNi04ZDg5LThjOTAwNGIxNDdlMCIsImlhdCI6MTcxNDYyOTg0NCwiZXh0cmFzIjp7fX0.CCqdsYdUneSZfKGkp9MEic2jV8EXLMJa0qwNuM7S9_4"}'>
+        <li id="{{task.id}}" hx-trigger="click" hx-swap="outerHTML">
             <strong>{{ task.title }}</strong> - {{ task.content }}
             <br>Created: {{ task.date_creation }}
             <br>Priority ID: {{ task.priority_id }}
@@ -12,6 +12,19 @@
             <br>Deadline: Not set
             {% endif %}
         </li>
+        <button hx-delete="/hypermedia/tasks/{{task.id}}" 
+                hx-trigger="click"
+                hx-swap="outerHTML">
+        Delete Task
+        </button>  
+        <button hx-get="/hypermedia/tasks/form/{{task.id}}" 
+                hx-trigger="click"
+                hx-swap="outerHTML"
+                hx-target="#edit-task-form">
+
+        Edit Task
+        </button>  
+        <div id="edit-task-form"></div>
         {% endfor %}
     </ul>
 </div>

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Create Project</title>
+    <script src="js/htmx.js"></script></head>
+<body>
+    <h1>Create Project</h1>
+    <form action="/hypermedia/projects/create" 
+          method="post" 
+          hx-boost="true" 
+          hx-swap="outerHTML"
+          hx-target="#another-div">
+          <label for="name">name:</label>
+          <input type="text" 
+               id="name" 
+               name="name" required><br>
+          <label for="description">description:</label>
+          <input type="text" 
+               id="description" 
+               name="description"><br>
+        <button type="submit">Create Project</button>
+    </form>
+    <div id="another-div"></div>
+</form>
+</body>
+</html>

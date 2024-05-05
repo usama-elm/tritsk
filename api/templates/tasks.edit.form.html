@@ -1,0 +1,24 @@
+<form action="/hypermedia/tasks/{{id}}" 
+method="post" 
+hx-boost="true" 
+hx-swap="outerHTML"
+hx-target="#another-div">
+<label for="title">title:</label>
+<input type="text" 
+     id="title" 
+     name="title"><br>
+<label for="content">content:</label>
+<input type="text" 
+     id="content" 
+     name="content"><br>
+<label for="priority">priority:</label>
+<input type="text" 
+     id="priority" 
+     name="priority"><br>
+<label for="deadline">deadline:</label>
+<input type="datetime-local" 
+     id="deadline" 
+     name="deadline"><br>
+<button type="submit">Edit Task</button>
+</form>
+<div id="another-div"></div>

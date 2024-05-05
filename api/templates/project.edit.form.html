@@ -1,0 +1,16 @@
+<form action="/hypermedia/projects/{{id}}" 
+method="post" 
+hx-boost="true" 
+hx-swap="outerHTML"
+hx-target="#another-div">
+<label for="name">name:</label>
+<input type="text" 
+     id="name" 
+     name="name"><br>
+<label for="description">description:</label>
+<input type="text" 
+     id="description" 
+     name="description"><br>
+<button type="submit">Edit Project</button>
+</form>
+<div id="another-div"></div>

@@ -2,14 +2,47 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Litestar and HTMX Example</title>
+    <title>TriTsk</title>
     <script src="js/htmx.min.js"></script>
 </head>
 <body>
-    <h1>Litestar and HTMX Integration</h1>
-    <div hx-get="http://app-local.loc:8000/hypermedia/tasks" hx-trigger="load" hx-swap="outerHTML">
+    <h1>TriTsk</h1>
+    <div>
+        <div>
+            <button hx-get="/src/create-task.html" 
+                    hx-trigger="click"
+                    hx-swap="outerHTML"
+                    hx-push-url="/src/create-task.html">
+                Create Task
+            </button>
+        </div>
+        <div>
+            
+        </div>
+    </div>
+    <div hx-get="/hypermedia/tasks" 
+         hx-trigger="load" 
+         hx-swap="outerHTML">
         >
         Loading...
     </div>
+    <div>
+        <button hx-get="/src/create-project.html" 
+                hx-trigger="click"
+                hx-swap="outerHTML"
+                hx-push-url="/src/create-project.html">
+            Create Project
+        </button>
+    </div>
+    <div hx-get="/hypermedia/projects" 
+         hx-trigger="load" 
+         hx-swap="outerHTML">
+        >
+        Loading...
+    </div>
+    <button hx-get="/hypermedia/logout"
+            hx-redirect="true">
+    Log Out
+    </button>
 </body>
 </html>
