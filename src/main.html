@@ -31,7 +31,7 @@
                      <button type="submit">Get tasks</button>
                      <button hx-get="/hypermedia/tasks/tasks_by_project" 
                      hx-trigger="click" 
-                     hx-swap="outerHTML">
+                     hx-target="#tasks" hx-swap="innerHTML">
                     Get tasks by project
                      </button>
                 </form>
