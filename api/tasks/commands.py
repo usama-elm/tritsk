@@ -15,6 +15,7 @@ def create_task(
     content: str,
     priority_id: int,
     project_id: int,
+    status_id: int,
     deadline: date | None = None,
 ) -> int:
     try:
@@ -23,13 +24,19 @@ def create_task(
                 detail="Not logged in",
                 status_code=400,
             )
-        values = {"title": title, "content": content, "priority_id": priority_id}
+        values = {
+            "title": title,
+            "content": content,
+            "priority_id": priority_id,
+            "status_id": status_id,
+        }
         if deadline:
             values["deadline"] = deadline
+
         stmt = insert(tasks).values(**values)
         task = session.execute(stmt)
         session.flush()
-        task_project = assign_task_project_user(
+        assign_task_project_user(
             session=session,
             user_id=user_id,
             task_id=task.inserted_primary_key[0],
@@ -57,6 +64,7 @@ def update_task(
     title: str | None = None,
     content: str | None = None,
     priority_id: int | None = None,
+    status_id: int | None = None,
     deadline: date | None = None,
 ) -> int:
     values: dict = {}
@@ -68,6 +76,8 @@ def update_task(
         values["priority_id"] = priority_id
     if deadline:
         values["deadline"] = deadline
+    if status_id:
+        values["status_id"] = status_id
     if not values:
         raise ValueError("No information given for an update")
     if not user_id:

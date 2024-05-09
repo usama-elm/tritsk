@@ -16,13 +16,23 @@ CREATE TABLE IF NOT EXISTS priority (
     description TEXT
 );
 
+CREATE TABLE IF NOT EXISTS status (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(255) NOT NULL
+);
+
+INSERT INTO status (title) VALUES ('to-do');
+INSERT INTO status (title) VALUES ('doing');
+INSERT INTO status (title) VALUES ('done');
+
 CREATE TABLE IF NOT EXISTS tasks (
     id SERIAL PRIMARY KEY,
     title VARCHAR(200) UNIQUE NOT NULL,
     content TEXT,
     date_creation TIMESTAMP WITH TIME ZONE DEFAULT now(),
     priority_id BIGINT NOT NULL REFERENCES priority(id) ON UPDATE CASCADE ON DELETE NO ACTION,
-    deadline DATE
+    deadline DATE,
+    state_id INTEGER NOT NULL FOREIGN KEY (state_id) REFERENCES status(id)
 );
 
 CREATE TABLE IF NOT EXISTS projects (

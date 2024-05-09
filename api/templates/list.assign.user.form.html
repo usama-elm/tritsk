@@ -1,8 +1,8 @@
 <form action="/hypermedia/users/{{project_id}}/assign" 
 method="post" 
 hx-boost="true" 
-hx-swap="outerHTML"
-hx-target="#after-button-assign-{{project_id}}"
+hx-swap="afterbegin"
+hx-target="#another-div"
 >
 <label for="choices">Choose a user:</label>
 <select id="user_id" name="user_id">

@@ -6,6 +6,7 @@ from sqlalchemy import (
     Column,
     DateTime,
     ForeignKey,
+    Integer,
     MetaData,
     SmallInteger,
     String,
@@ -35,6 +36,13 @@ priority = Table(
     Column("description", Text, key="description"),
 )
 
+status = Table(
+    "status",
+    tables_metadata,
+    Column("id", Integer, primary_key=True, key="id"),
+    Column("title", String(255), key="title"),
+)
+
 tasks = Table(
     "tasks",
     tables_metadata,
@@ -48,6 +56,7 @@ tasks = Table(
     ),
     Column("priority_id", BigInteger, ForeignKey("priority.id"), key="priority_id"),
     Column("deadline", DateTime(timezone=True), key="deadline"),
+    Column("status_id", Integer, ForeignKey("status.id"), key="status_id"),
 )
 
 projects = Table(

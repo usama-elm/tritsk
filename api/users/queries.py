@@ -63,7 +63,7 @@ def get_users_by_project(
         )
     except Exception:
         raise HTTPException(
-            detail=f"Invalid information",
+            detail="Invalid information",
             status_code=400,
         )
 
@@ -94,7 +94,7 @@ def get_users(
         )
     except Exception:
         raise HTTPException(
-            detail=f"Invalid information",
+            detail="Invalid information",
             status_code=400,
         )
 

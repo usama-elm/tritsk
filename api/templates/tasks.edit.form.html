@@ -7,10 +7,10 @@ hx-target="#another-div">
 <input type="text" 
      id="title" 
      name="title"><br>
-<label for="rank">rank:</label>
-<input type="text" 
-     id="rank" 
-     name="rank"><br>
+     <div id="list-priorities-{{id}}" hx-get="/hypermedia/priorities/list" hx-swap="innerHTML" hx-trigger="load" hx-target="#list-priorities-{{id}}">
+     </div>
+     <div id="list-status-{{id}}" hx-get="/hypermedia/status/list" hx-swap="innerHTML" hx-trigger="load" hx-target="#list-status-{{id}}">
+      </div>
 <label for="description">description:</label>
 <input type="text" 
      id="description" 

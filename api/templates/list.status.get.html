@@ -1,0 +1,6 @@
+<label for="choices">Choose a status:</label>
+<select id="status" name="status">
+    {% for status in status_list %}
+        <option value="{{ status.id }}">{{ status.title }}</option>
+    {% endfor %}
+</select>

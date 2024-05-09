@@ -20,11 +20,11 @@
         <button hx-get="/hypermedia/tasks/form/{{task.id}}" 
                 hx-trigger="click"
                 hx-swap="outerHTML"
-                hx-target="#edit-task-form">
+                hx-target="#edit-task-form-{{task.id}}">
 
         Edit Task
         </button>  
-        <div id="edit-task-form"></div>
+        <div id="edit-task-form-{{task.id}}"></div>
         {% endfor %}
     </ul>
 </div>

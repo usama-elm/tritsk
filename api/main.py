@@ -14,6 +14,7 @@ from api.auth.router import auth_router
 from api.priorities.hypermedia import hypermedia_priorities_router
 from api.projects.hypermedia import hypermedia_projects_router
 from api.projects.router import project_router
+from api.status.hypermedia import hypermedia_status_router
 from api.tasks.hypermedia import hypermedia_tasks_router
 from api.tasks.router import task_router
 from api.users.hypermedia import hypermedia_users_router
@@ -35,6 +36,7 @@ app = Litestar(
         hypermedia_users_router,
         hypermedia_projects_router,
         hypermedia_priorities_router,
+        hypermedia_status_router,
         create_static_files_router(
             path="/src",
             directories=["src"],

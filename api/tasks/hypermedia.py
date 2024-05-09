@@ -7,11 +7,13 @@ from litestar.contrib.htmx.response import (
     ClientRefresh,
     HTMXTemplate,
     Reswap,
+    Retarget,
 )
 from litestar.di import Provide
 from litestar.enums import RequestEncodingType
 from litestar.params import Body
 from litestar.response import Template
+from sqlalchemy import exc
 from sqlalchemy.orm import Session
 
 import api.tasks.commands as commands
@@ -21,7 +23,7 @@ from api.utils import get_user_id_by_auth_token
 
 
 @get(
-    path="/{project_id:int}",
+    path="/",
     dependencies={"session": Provide(get_db, sync_to_thread=False)},
 )
 def get_tasks(
@@ -29,6 +31,9 @@ def get_tasks(
     request: HTMXRequest,
     ids: list[int] | None = None,
     project_id: int | None = None,
+    priority: int | None = None,
+    status: int | None = None,
+    # data: dict = Body(media_type=RequestEncodingType.URL_ENCODED),
 ) -> Template:
     return HTMXTemplate(
         template_name="tasks.get.html",
@@ -39,6 +44,9 @@ def get_tasks(
                 user_id=get_user_id_by_auth_token(
                     token=request.cookies["X-AUTH"],
                 ),
+                project_id=project_id,
+                priority=priority,
+                status=status,
             )
         },
     )
@@ -83,6 +91,7 @@ def create_task(
             else None
         ),
         project_id=data["project_id"],
+        status_id=data["status"],
     )
     if isinstance(task, int):
         return ClientRedirect(
@@ -142,7 +151,7 @@ def get_assign_tasks(
         context={
             "tasks": queries.get_tasks(
                 session=session,
-                user_id=user_id,
+                user_id=get_user_id_by_auth_token(token=request.cookies["X-AUTH"]),
                 project_id=project_id,
                 ids=None,
             ),
@@ -171,6 +180,7 @@ def update_task(
             if data["deadline"] != ""
             else None
         ),
+        status_id=data["status"],
     )
     if isinstance(task_edit, int):
         return ClientRedirect(
@@ -193,21 +203,28 @@ def assign_task(
     project_id: int,
     user_id: str,
     data: dict = Body(media_type=RequestEncodingType.URL_ENCODED),
-) -> ClientRedirect | Reswap:
-    task_edit = commands.assign_task_project_user(
-        session=session,
-        user_id=user_id,
-        project_id=project_id,
-        task_id=int(data["task"]),
-    )
-    if task_edit == "Success":
-        return ClientRedirect(
-            redirect_to="/src/users.html",
+) -> ClientRedirect | Retarget:
+    try:
+        task_edit = commands.assign_task_project_user(
+            session=session,
+            user_id=user_id,
+            project_id=project_id,
+            task_id=int(data["task"]),
         )
-    else:
-        return Reswap(
-            method="innerHTML",
-            content='<span id="error">One and/or more elements of the form are incorrect</span>',
+        if task_edit == "Success":
+            return ClientRedirect(
+                redirect_to="/src/users.html",
+            )
+    except exc.SQLAlchemyError:
+        return Retarget(
+            content="<span id='error'>Duplicate error</span>",
+            target="#another-div",
+        )
+
+    except Exception as e:
+        return Retarget(
+            content=f"<span id='error'>{e}</span>",
+            target="#another-div",
         )
 
 
