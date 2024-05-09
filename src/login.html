@@ -6,7 +6,7 @@
     <script src="js/htmx.js"></script></head>
 <body>
     <h1>Login</h1>
-    <form action="http://app-local.loc:8000/hypermedia/login" 
+    <form action="/hypermedia/login" 
           method="post" 
           hx-boost="true" 
           hx-swap="outerHTML"
@@ -20,7 +20,7 @@
                id="password" 
                name="password" required><br>
         <button type="submit">Login</button>
-        <button hx-get="http://app-local.loc:8000/src/create-user.html" hx-trigger="click" hx-push-url="http://app-local.loc:8000/src/create-user.html">
+        <button hx-get="/src/create-user.html" hx-trigger="click" hx-push-url="/src/create-user.html">
             Create User
         </button>    
     </form>

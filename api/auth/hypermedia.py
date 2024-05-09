@@ -29,7 +29,6 @@ def login(
         response.set_cookie(
             key="X-AUTH",
             value=token_str,
-            domain="app-local.loc",
             samesite="lax",
         )
         return response
@@ -48,7 +47,6 @@ def logout() -> ClientRedirect:
     response.set_cookie(
         key="X-AUTH",
         value="EXPIRED",
-        domain="app-local.loc",
         samesite="lax",
     )
     return response
