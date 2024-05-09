@@ -19,10 +19,10 @@
         <input type="text" 
                id="content" 
                name="content" required><br>
-        <label for="priority">priority:</label>
-        <input type="text" 
-               id="priority" 
-               name="priority" required><br>
+       <div id="list-priorities" hx-get="/hypermedia/priorities/list" hx-swap="innerHTML" hx-trigger="load" hx-target="#list-priorities">
+       </div>
+       <div id="list-projects" hx-get="/hypermedia/projects/list" hx-swap="innerHTML" hx-trigger="load" hx-target="#list-projects">
+       </div>
         <label for="deadline">deadline:</label>
         <input type="datetime-local" 
                id="deadline" 

@@ -17,7 +17,7 @@ def get_projects(
 ) -> Response:
     try:
         return Response(
-            content=queries.get_tasks(
+            content=queries.get_projects(
                 ids=ids,
                 session=session,
                 user_id=get_user_id_by_auth_token(token=request.cookies["X-AUTH"]),

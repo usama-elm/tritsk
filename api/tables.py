@@ -64,6 +64,7 @@ project_user_rel = Table(
     Column("id", BigInteger, primary_key=True, key="id"),
     Column("project_id", BigInteger, ForeignKey("projects.id"), key="project_id"),
     Column("user_id", UUID, ForeignKey("users.id"), key="user_id"),
+    Column("role", String(50), key="role"),
 )
 
 task_user_rel = Table(

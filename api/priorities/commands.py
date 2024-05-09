@@ -3,14 +3,15 @@ from sqlalchemy import and_, delete, insert, update
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from api.tables import project_user_rel, projects
+from api.tables import priority
 
 
-def create_project(
+def create_priority(
     session: Session,
     user_id: str,
-    name: str,
-    description: str | None = None,
+    title: str,
+    rank: str,
+    description: int | None = None,
 ) -> int:
     try:
         if not user_id:
@@ -18,21 +19,17 @@ def create_project(
                 detail="Not logged in",
                 status_code=400,
             )
-        stmt = insert(projects).values(
-            name=name,
-            description=description,
-        )
-        project = session.execute(stmt)
-        session.flush()
-        stmt_rel = insert(project_user_rel).values(
-            project_id=project.inserted_primary_key[0],
-            user_id=user_id,
-            role="chief",
-        )
+        values = {
+            "title": title,
+            "rank": rank,
+        }
+        if description:
+            values["description"] = description
 
-        session.execute(stmt_rel)
+        stmt = insert(priority).values(**values)
+        task = session.execute(stmt)
         session.commit()
-        return project.inserted_primary_key[0]
+        return task.inserted_primary_key[0]
     except SQLAlchemyError as e:
         session.rollback()
         raise HTTPException(
@@ -46,16 +43,19 @@ def create_project(
         )
 
 
-def update_project(
+def update_priority(
     session: Session,
     user_id: str,
-    project_id: int,
-    name: str | None = None,
-    description: str | None = None,
-) -> str:
+    priority_id: int,
+    title: str | None = None,
+    rank: str | None = None,
+    description: int | None = None,
+) -> int:
     values: dict = {}
-    if name:
-        values["name"] = name
+    if title:
+        values["title"] = title
+    if rank:
+        values["rank"] = rank
     if description:
         values["description"] = description
     if not values:
@@ -67,24 +67,16 @@ def update_project(
         )
     try:
         stmt = (
-            update(projects)
-            .where(
-                and_(
-                    projects.c.id == project_id,
-                    projects.c.id == project_user_rel.c.project_id,
-                    project_user_rel.c.user_id == user_id,
-                )
-            )
-            .values(**values)
+            update(priority).where(and_(priority.c.id == priority_id)).values(**values)
         )
         result = session.execute(stmt)
         if result.rowcount == 0:
             raise HTTPException(
-                detail="Project does not correspond to your user",
+                detail="Priority does not correspond to your user",
                 status_code=400,
             )
         session.commit()
-        return "Success"
+        return id
     except SQLAlchemyError as e:
         session.rollback()
         raise HTTPException(
@@ -98,18 +90,27 @@ def update_project(
         )
 
 
-def delete_project(session: Session, user_id: str, project_id: int) -> None:
-    stmt = delete(projects).where(
-        and_(
-            projects.c.id == project_id,
-            projects.c.id == project_user_rel.c.project_id,
-            project_user_rel.c.user_id == user_id,
-        )
-    )
-    result = session.execute(stmt)
-    if result.rowcount == 0:
+def delete_priority(
+    session: Session,
+    user_id: str,
+    priority_id: int,
+) -> None:
+    try:
+        if not user_id:
+            raise HTTPException(
+                detail="Not logged in",
+                status_code=400,
+            )
+        stmt = delete(priority).where(and_(priority.c.priority_id == priority_id))
+        result = session.execute(stmt)
+        if result.rowcount == 0:
+            raise HTTPException(
+                detail="Priority does not correspond to your user",
+                status_code=400,
+            )
+        session.commit()
+    except Exception as ex:
         raise HTTPException(
-            detail="Project does not correspond to your user",
+            detail=f"Invalid information: {ex}",
             status_code=400,
         )
-    session.commit()

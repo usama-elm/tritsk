@@ -3,7 +3,7 @@ from sqlalchemy import and_, delete, insert, select, update
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from api.tables import users
+from api.tables import project_user_rel, users
 from api.utils import check_is_mail, hash_password, verify_password
 
 
@@ -93,6 +93,69 @@ def delete_task(
     except Exception:
         raise HTTPException(
             detail=f"Not logged in and/or wrong password",
+            status_code=400,
+        )
+
+
+def add_role_to_user(
+    session: Session,
+    user_id: str,
+    project_id: int,
+    role: str,
+) -> str:
+    try:
+        stmt = (
+            update(project_user_rel)
+            .where(
+                and_(
+                    project_user_rel.c.user_id == user_id,
+                    project_user_rel.c.project_id == project_id,
+                )
+            )
+            .values(
+                role=role,
+            )
+        )
+        session.execute(stmt)
+        session.commit()
+        return "Success"
+    except SQLAlchemyError as e:
+        session.rollback()
+        raise HTTPException(
+            detail=f"Failed to execute database operation: {e}",
+            status_code=400,
+        )
+    except Exception:
+        raise HTTPException(
+            detail=f"Invalid information",
+            status_code=400,
+        )
+
+
+def add_user_to_project(
+    session: Session,
+    user_id: str,
+    project_id: int,
+    role: str,
+) -> str:
+    try:
+        stmt = insert(project_user_rel).values(
+            project_id=project_id,
+            user_id=user_id,
+            role=role,
+        )
+        session.execute(stmt)
+        session.commit()
+        return "Success"
+    except SQLAlchemyError as e:
+        session.rollback()
+        raise HTTPException(
+            detail=f"Failed to execute database operation: {e}",
+            status_code=400,
+        )
+    except Exception:
+        raise HTTPException(
+            detail=f"Invalid information",
             status_code=400,
         )
 

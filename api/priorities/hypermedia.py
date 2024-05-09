@@ -12,52 +12,47 @@ from litestar.params import Body
 from litestar.response import Template
 from sqlalchemy.orm import Session
 
-import api.projects.commands as commands
-import api.projects.queries as queries
+import api.priorities.commands as commands
+import api.priorities.queries as queries
 from api.database import get_db
 from api.utils import get_user_id_by_auth_token
 
 
 @get(path="/", dependencies={"session": Provide(get_db, sync_to_thread=False)})
-def get_projects(
+def get_priorities(
     session: Session,
     request: HTMXRequest,
     ids: list[int] | None = None,
 ) -> Template:
     return HTMXTemplate(
-        template_name="projects.get.html",
+        template_name="priorities.get.html",
         context={
-            "projects_managed": queries.get_projects_by_role(
-                ids=ids,
+            "priorities": queries.get_priorities(
                 session=session,
-                role=["chief", "collaborator"],
-                user_id=get_user_id_by_auth_token(token=request.cookies["X-AUTH"]),
-            ),
-            "projects": queries.get_projects_by_role(
-                ids=ids,
-                session=session,
-                role=["user"],
-                user_id=get_user_id_by_auth_token(token=request.cookies["X-AUTH"]),
-            ),
+                user_id=get_user_id_by_auth_token(
+                    token=request.cookies["X-AUTH"],
+                ),
+            )
         },
     )
 
 
 @post(path="/create", dependencies={"session": Provide(get_db, sync_to_thread=False)})
-def create_project(
+def create_priorities(
     session: Session,
     request: HTMXRequest,
     data: dict = Body(media_type=RequestEncodingType.URL_ENCODED),
 ) -> ClientRedirect | Reswap:
-    project = commands.create_project(
+    task = commands.create_priority(
         session=session,
         user_id=get_user_id_by_auth_token(token=request.cookies["X-AUTH"]),
-        name=data["name"],
+        title=data["title"],
+        rank=int(data["rank"]),
         description=data["description"] if data["description"] else None,
     )
-    if isinstance(project, int):
+    if isinstance(task, int):
         return ClientRedirect(
-            redirect_to="/src/projects.html",
+            redirect_to="/src/priorities.html",
         )
     else:
         return Reswap(
@@ -67,57 +62,55 @@ def create_project(
 
 
 @delete(
-    path="{project_id:int}",
+    path="{priority_id:int}",
     dependencies={"session": Provide(get_db, sync_to_thread=False)},
     status_code=200,
 )
-def delete_task(
+def delete_priorities(
     session: Session,
     request: HTMXRequest,
-    project_id: int,
+    priority_id: int,
 ) -> ClientRefresh:
-    commands.delete_project(
+    commands.delete_priority(
         session=session,
         user_id=get_user_id_by_auth_token(token=request.cookies["X-AUTH"]),
-        project_id=project_id,
+        priority_id=priority_id,
     )
     return ClientRefresh()
 
 
 @get(
-    path="/form/{project_id:int}",
+    path="/form/{priority_id:int}",
     dependencies={"session": Provide(get_db, sync_to_thread=False)},
 )
-def get_project_edit_form(
+def get_priority_edit_form(
     request: HTMXRequest,
-    project_id: int,
+    priority_id: int,
 ) -> Template:
     return HTMXTemplate(
-        template_name="project.edit.form.html",
-        context={"id": project_id},
+        template_name="tasks.edit.form.html",
+        context={"priority_id": priority_id},
     )
 
 
-@post(
-    path="{project_id:int}",
-    dependencies={"session": Provide(get_db, sync_to_thread=False)},
-)
-def update_project(
+@post(path="{id:int}", dependencies={"session": Provide(get_db, sync_to_thread=False)})
+def update_priorities(
     session: Session,
     request: HTMXRequest,
-    project_id: int,
+    id: int,
     data: dict = Body(media_type=RequestEncodingType.URL_ENCODED),
 ) -> ClientRedirect | Reswap:
-    task_edit = commands.update_project(
+    task_edit = commands.update_priority(
         session=session,
         user_id=get_user_id_by_auth_token(token=request.cookies["X-AUTH"]),
-        project_id=project_id,
-        name=data["name"],
+        id=id,
+        title=data["title"],
+        rank=data["rank"],
         description=data["description"],
     )
     if isinstance(task_edit, int):
         return ClientRedirect(
-            redirect_to="/src/main.html",
+            redirect_to="/src/priorities.html",
         )
     else:
         return Reswap(
@@ -127,38 +120,35 @@ def update_project(
 
 
 @get(path="/list", dependencies={"session": Provide(get_db, sync_to_thread=False)})
-def get_projects_list(
+def give_list_slider(
     session: Session,
     request: HTMXRequest,
 ) -> Template:
     return HTMXTemplate(
-        template_name="list.projects.get.html",
+        template_name="list.priorities.get.html",
         context={
-            "projects": queries.get_projects(
-                ids=None,
+            "priorities": queries.get_priorities(
                 session=session,
-                user_id=get_user_id_by_auth_token(token=request.cookies["X-AUTH"]),
-                role=[
-                    "chief",
-                    "collaborator",
-                ],
-            ),
+                user_id=get_user_id_by_auth_token(
+                    token=request.cookies["X-AUTH"],
+                ),
+            )
         },
     )
 
 
-hypermedia_projects_router = Router(
-    path="/hypermedia/projects",
+hypermedia_priorities_router = Router(
+    path="/hypermedia/priorities",
     route_handlers=[
-        get_projects,
-        create_project,
-        delete_task,
-        get_project_edit_form,
-        update_project,
-        get_projects_list,
+        get_priorities,
+        create_priorities,
+        update_priorities,
+        delete_priorities,
+        get_priority_edit_form,
+        give_list_slider,
     ],
     tags=[
         "Hypermedia",
-        "Projects",
+        "Tasks",
     ],
 )

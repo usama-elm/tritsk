@@ -20,17 +20,42 @@ from api.database import get_db
 from api.utils import get_user_id_by_auth_token
 
 
-@get(path="/", dependencies={"session": Provide(get_db, sync_to_thread=False)})
+@get(
+    path="/{project_id:int}",
+    dependencies={"session": Provide(get_db, sync_to_thread=False)},
+)
 def get_tasks(
     session: Session,
     request: HTMXRequest,
     ids: list[int] | None = None,
+    project_id: int | None = None,
 ) -> Template:
     return HTMXTemplate(
         template_name="tasks.get.html",
         context={
             "tasks": queries.get_tasks(
                 ids=ids,
+                session=session,
+                user_id=get_user_id_by_auth_token(
+                    token=request.cookies["X-AUTH"],
+                ),
+            )
+        },
+    )
+
+
+@get(
+    path="/tasks_by_project",
+    dependencies={"session": Provide(get_db, sync_to_thread=False)},
+)
+def get_tasks_projects(
+    session: Session,
+    request: HTMXRequest,
+) -> Template:
+    return HTMXTemplate(
+        template_name="projects.tasks.get.html",
+        context={
+            "elements": queries.get_tasks_by_project_user(
                 session=session,
                 user_id=get_user_id_by_auth_token(
                     token=request.cookies["X-AUTH"],
@@ -57,6 +82,7 @@ def create_task(
             if data["deadline"] != ""
             else None
         ),
+        project_id=data["project_id"],
     )
     if isinstance(task, int):
         return ClientRedirect(
@@ -64,7 +90,7 @@ def create_task(
         )
     else:
         return Reswap(
-            method="innerHTML",
+            method="outerHTML",
             content='<span id="error">One and/or more elements of the form are incorrect</span>',
         )
 
@@ -101,6 +127,31 @@ def get_task_edit_form(
     )
 
 
+@get(
+    path="/assign/form/{project_id:int}/{user_id:str}",
+    dependencies={"session": Provide(get_db, sync_to_thread=False)},
+)
+def get_assign_tasks(
+    session: Session,
+    request: HTMXRequest,
+    project_id: int,
+    user_id: str,
+) -> Template:
+    return HTMXTemplate(
+        template_name="list.tasks.project.user.get.html",
+        context={
+            "tasks": queries.get_tasks(
+                session=session,
+                user_id=user_id,
+                project_id=project_id,
+                ids=None,
+            ),
+            "project_id": project_id,
+            "user_id": user_id,
+        },
+    )
+
+
 @post(path="{id:int}", dependencies={"session": Provide(get_db, sync_to_thread=False)})
 def update_task(
     session: Session,
@@ -130,7 +181,34 @@ def update_task(
             method="innerHTML",
             content='<span id="error">One and/or more elements of the form are incorrect</span>',
         )
-    ...
+
+
+@post(
+    path="/assign/{project_id:int}/{user_id:str}",
+    dependencies={"session": Provide(get_db, sync_to_thread=False)},
+)
+def assign_task(
+    session: Session,
+    request: HTMXRequest,
+    project_id: int,
+    user_id: str,
+    data: dict = Body(media_type=RequestEncodingType.URL_ENCODED),
+) -> ClientRedirect | Reswap:
+    task_edit = commands.assign_task_project_user(
+        session=session,
+        user_id=user_id,
+        project_id=project_id,
+        task_id=int(data["task"]),
+    )
+    if task_edit == "Success":
+        return ClientRedirect(
+            redirect_to="/src/users.html",
+        )
+    else:
+        return Reswap(
+            method="innerHTML",
+            content='<span id="error">One and/or more elements of the form are incorrect</span>',
+        )
 
 
 hypermedia_tasks_router = Router(
@@ -141,6 +219,9 @@ hypermedia_tasks_router = Router(
         delete_task,
         get_task_edit_form,
         update_task,
+        get_tasks_projects,
+        get_assign_tasks,
+        assign_task,
     ],
     tags=[
         "Hypermedia",

@@ -11,6 +11,7 @@ from litestar.template.config import TemplateConfig
 from api.auth.auth import jwt_auth
 from api.auth.hypermedia import hypermedia_auth_router
 from api.auth.router import auth_router
+from api.priorities.hypermedia import hypermedia_priorities_router
 from api.projects.hypermedia import hypermedia_projects_router
 from api.projects.router import project_router
 from api.tasks.hypermedia import hypermedia_tasks_router
@@ -33,6 +34,7 @@ app = Litestar(
         hypermedia_auth_router,
         hypermedia_users_router,
         hypermedia_projects_router,
+        hypermedia_priorities_router,
         create_static_files_router(
             path="/src",
             directories=["src"],

@@ -4,45 +4,38 @@
     <meta charset="UTF-8">
     <title>TriTsk</title>
     <script src="js/htmx.min.js"></script>
+    <link rel="stylesheet" href="main.css">
 </head>
-<body>
-    <h1>TriTsk</h1>
-    <div>
-        <div>
-            <button hx-get="/src/create-task.html" 
-                    hx-trigger="click"
-                    hx-swap="outerHTML"
-                    hx-push-url="/src/create-task.html">
-                Create Task
+<div class="navbar">
+    <div hx-get="/hypermedia/users/current" hx-trigger="load" hx-swap="outerHTML"></div>
+    <a href="/src/main.html">Main</a>
+    <a href="/src/projects.html">Projects</a>
+    <a href="/src/priorities.html">Priorities</a>
+    <a href="/src/users.html">Users</a>
+</div>
+    <div class="main">
+        <body>
+            <h1>TriTsk</h1>
+            <div>
+                <div>
+                    <button hx-get="/src/create-task.html" 
+                            hx-trigger="click"
+                            hx-swap="outerHTML"
+                            hx-push-url="/src/create-task.html">
+                        Create Task
+                    </button>
+                </div>
+            </div>
+            <div hx-get="/hypermedia/tasks/tasks_by_project" 
+            hx-trigger="load" 
+            hx-swap="outerHTML">
+           >
+           Loading...
+        </div>
+            <button hx-get="/hypermedia/logout"
+                    hx-redirect="true">
+            Log Out
             </button>
-        </div>
-        <div>
-            
-        </div>
     </div>
-    <div hx-get="/hypermedia/tasks" 
-         hx-trigger="load" 
-         hx-swap="outerHTML">
-        >
-        Loading...
-    </div>
-    <div>
-        <button hx-get="/src/create-project.html" 
-                hx-trigger="click"
-                hx-swap="outerHTML"
-                hx-push-url="/src/create-project.html">
-            Create Project
-        </button>
-    </div>
-    <div hx-get="/hypermedia/projects" 
-         hx-trigger="load" 
-         hx-swap="outerHTML">
-        >
-        Loading...
-    </div>
-    <button hx-get="/hypermedia/logout"
-            hx-redirect="true">
-    Log Out
-    </button>
 </body>
 </html>

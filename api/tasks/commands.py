@@ -1,11 +1,11 @@
 from datetime import date
 
 from litestar.exceptions import HTTPException
-from sqlalchemy import and_, delete, insert, update
+from sqlalchemy import and_, delete, insert, or_, select, update
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from api.tables import task_user_rel, tasks
+from api.tables import project_user_rel, task_user_rel, tasks
 
 
 def create_task(
@@ -14,6 +14,7 @@ def create_task(
     title: str,
     content: str,
     priority_id: int,
+    project_id: int,
     deadline: date | None = None,
 ) -> int:
     try:
@@ -28,11 +29,12 @@ def create_task(
         stmt = insert(tasks).values(**values)
         task = session.execute(stmt)
         session.flush()
-        stmt_rel = insert(task_user_rel).values(
-            task_id=task.inserted_primary_key[0],
+        task_project = assign_task_project_user(
+            session=session,
             user_id=user_id,
+            task_id=task.inserted_primary_key[0],
+            project_id=int(project_id),
         )
-        session.execute(stmt_rel)
         session.commit()
         return task.inserted_primary_key[0]
     except SQLAlchemyError as e:
@@ -125,3 +127,46 @@ def delete_task(
             status_code=400,
         )
     session.commit()
+
+
+def assign_task_project_user(
+    session: Session,
+    user_id: str,
+    task_id: int,
+    project_id: int,
+) -> str | HTTPException:
+    stmt_conf = (
+        select(project_user_rel.c.user_id)
+        .where(
+            project_user_rel.c.user_id == user_id,
+        )
+        .where(
+            project_user_rel.c.project_id == project_id,
+        )
+        .where(
+            or_(
+                project_user_rel.c.role == "chief",
+                project_user_rel.c.role == "collaborator",
+            )
+        )
+    )
+
+    if session.execute(stmt_conf).scalar_one_or_none():
+        stmt = insert(task_user_rel).values(
+            task_id=task_id,
+            user_id=user_id,
+            project_id=project_id,
+        )
+        result = session.execute(stmt)
+        if result.rowcount == 0:
+            raise HTTPException(
+                detail="Task does not correspond to your user",
+                status_code=400,
+            )
+        session.commit()
+        return "Success"
+    else:
+        raise HTTPException(
+            detail="User doesn't have the rights",
+            status_code=400,
+        )

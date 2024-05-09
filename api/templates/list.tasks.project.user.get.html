@@ -1,0 +1,14 @@
+<form action="/hypermedia/tasks/assign/{{project_id}}/{{user_id}}" 
+method="post" 
+hx-boost="true" 
+hx-swap="outerHTML"
+>
+<label for="choices">Choose a task:</label>
+<select id="task" name="task">
+    {% for task in tasks %}
+        <option value="{{ task.id }}">{{ task.title }} - {{ task.description }}</option>
+    {% endfor %}
+</select>
+<button type="submit">Assign Task</button>
+</form>
+<div id="another-div"></div>

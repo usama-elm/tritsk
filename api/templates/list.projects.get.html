@@ -1,0 +1,6 @@
+<label for="choices">Choose a project:</label>
+<select id="project_id" name="project_id">
+    {% for project in projects %}
+        <option value="{{ project.id }}">{{ project.name }}</option>
+    {% endfor %}
+</select>

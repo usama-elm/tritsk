@@ -30,7 +30,7 @@ def login(
     return reponse
 
 
-@get(path="/example", dependencies={"session": Provide(get_db, sync_to_thread=False)})
+@get(path="/current", dependencies={"session": Provide(get_db, sync_to_thread=False)})
 def get_user_by_token(
     session: Session,
     request: Request[Any, Token, Any],

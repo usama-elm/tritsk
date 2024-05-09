@@ -1,0 +1,20 @@
+<form action="/hypermedia/users/{{project_id}}/assign" 
+method="post" 
+hx-boost="true" 
+hx-swap="outerHTML"
+hx-target="#after-button-assign-{{project_id}}"
+>
+<label for="choices">Choose a user:</label>
+<select id="user_id" name="user_id">
+    {% for user in users %}
+        <option value="{{ user.id }}">{{ user.name }} {{ user.aftername }}</option>
+    {% endfor %}
+</select>
+<label for="choices">Choose a role:</label>
+<select id="role" name="role">
+    <option value="user">User</option>
+    <option value="collaborator">Collaborator</option>    
+</select>
+<button type="submit">Assign User</button>
+</form>
+<div id="another-div"></div>

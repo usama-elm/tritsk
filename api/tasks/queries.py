@@ -4,7 +4,8 @@ from litestar.exceptions import HTTPException
 from sqlalchemy import and_, select
 from sqlalchemy.orm import Session
 
-from api.tables import task_user_rel, tasks
+import api.projects.queries as queries_project
+from api.tables import project_user_rel, task_user_rel, tasks
 
 
 def get_task_by_id(
@@ -52,18 +53,30 @@ def get_tasks(
     session: Session,
     user_id: str,
     ids: list[int] | None,
+    project_id: int,
 ) -> list[dict[str, Any] | None]:
     stmt = (
         select(tasks)
         .join(
-            task_user_rel,
-            tasks.c.id == task_user_rel.c.task_id,
+            project_user_rel,
+            project_user_rel.c.role == "chief",
         )
-        .where(task_user_rel.c.user_id == user_id)
+        .join(
+            task_user_rel,
+            and_(
+                tasks.c.id == task_user_rel.c.task_id,
+                project_user_rel.c.project_id == task_user_rel.c.project_id,
+                task_user_rel.c.user_id == user_id,
+            ),
+        )
+        .where(
+            project_user_rel.c.project_id == project_id,
+        )
     )
     if ids:
         stmt.where(tasks.c.id._in(ids))
 
+    exe = session.execute(stmt).fetchall()
     tasks_dict = [
         {
             "id": row[tasks.c.id],
@@ -78,7 +91,38 @@ def get_tasks(
                 if row[tasks.c.deadline] is not None
                 else None
             ),
+            # "project_id": row[task_user_rel.c.project_id],
         }
         for row in session.execute(stmt).mappings()
     ]
     return tasks_dict
+
+
+def get_tasks_by_project_user(
+    session: Session,
+    user_id: int,
+) -> list[dict[str, dict]]:
+    projects = queries_project.get_projects(
+        session=session,
+        user_id=user_id,
+        ids=None,
+        role=[
+            "chief",
+            "collaborator",
+            "user",
+        ],
+    )
+    tasks_by_projects = []
+    for project in projects:
+        tasks_by_projects.append(
+            {
+                "project": project,
+                "tasks": get_tasks(
+                    session=session,
+                    user_id=user_id,
+                    project_id=project["id"],
+                    ids=None,
+                ),
+            }
+        )
+    return tasks_by_projects

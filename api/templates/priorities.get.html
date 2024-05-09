@@ -1,0 +1,23 @@
+<div>
+    <h1>Priorities</h1>
+    <ul>
+        {% for priority in priorities %}
+        <li id="{{priority.id}}" hx-trigger="click" hx-swap="outerHTML">
+            <strong>{{ priority.title }}</strong> - {{ priority.description }}
+        </li>
+        <button hx-delete="/hypermedia/priorities/{{priority.id}}" 
+                hx-trigger="click"
+                hx-swap="outerHTML">
+        Delete Priority
+        </button>  
+        <button hx-get="/hypermedia/priorities/form/{{priority.id}}" 
+                hx-trigger="click"
+                hx-swap="outerHTML"
+                hx-target="#edit-task-form">
+
+        Edit Priority
+        </button>  
+        <div id="edit-task-form"></div>
+        {% endfor %}
+    </ul>
+</div>

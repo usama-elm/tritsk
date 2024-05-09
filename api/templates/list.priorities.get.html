@@ -1,0 +1,6 @@
+<label for="choices">Choose an priority:</label>
+<select id="priority" name="priority">
+    {% for priority in priorities %}
+        <option value="{{ priority.id }}">{{ priority.title }}</option>
+    {% endfor %}
+</select>
