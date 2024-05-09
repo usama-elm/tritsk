@@ -7,11 +7,8 @@ from litestar.security.jwt import JWTCookieAuth, Token
 from sqlalchemy import Row, select
 from sqlalchemy.orm import Session
 
+from api.config import ALGORITHM, JWT_SECRET
 from api.tables import users
-
-JWT_SECRET = "56ca36aabb26efa8634eb53db6cf021052b81078f230f8191a13ca01b6c12b1d"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = "30"
 
 
 def verify_access_token(
