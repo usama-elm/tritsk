@@ -9,20 +9,27 @@ services:
       - ./db/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
       - ./db/create_db_schema.sql:/docker-entrypoint-initdb.d/setup.sql
     ports:
-      - "50432:50432"
+      - "50432:5432"
+    networks:
+      - app-network
 
   litestar:
     build: .
     ports:
-      - "8000:7890"
+      - "7890:8897"
     depends_on:
       - db
     environment:
-      DB_ADRESS: db
-      DB_USER: tritsk
-      DB_PASSWORD: 0000
-      DB_NAME: tritsk
+      DB_ADRESS: db:5432
+      DB_USER: "tritsk"
+      DB_PASSWORD: "0000"
+      DB_NAME: "tritsk"
       JWT_SECRET: "56ca36aabb26efa8634eb53db6cf021052b81078f230f8191a13ca01b6c12b1d"
       ALGORITHM: "HS256"
       ACCESS_TOKEN_EXPIRE_MINUTES: "30"
-    network_mode: "host"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

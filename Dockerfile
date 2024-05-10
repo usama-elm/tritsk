@@ -4,6 +4,9 @@ FROM python:3.11-slim-bookworm
 # Install curl and other dependencies
 RUN apt-get update && apt-get install -y curl python3-pip
 
+# For debugging issues
+RUN apt-get update && apt-get install -y curl telnet iputils-ping
+
 # Create a directory for Poetry
 RUN mkdir -p /opt/poetry && \
     python3 -m venv /opt/poetry
@@ -26,4 +29,4 @@ RUN poetry install --no-dev
 # Copy the rest of the application
 COPY . /app
 
-CMD ["litestar", "--app", "api.main:app", "run", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["litestar", "--app", "api.main:app", "run", "--host", "0.0.0.0", "--port", "8897", "--debug"]
