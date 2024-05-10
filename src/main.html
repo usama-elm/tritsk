@@ -49,6 +49,14 @@
                         Create Task
                     </button>
                 </div>
+                <div>
+                    <button hx-get="/src/create-subtask.html" 
+                            hx-trigger="click"
+                            hx-swap="outerHTML"
+                            hx-push-url="/src/create-subtask.html">
+                        Create Subtask
+                    </button>
+                </div>
             </div>
             <button hx-get="/hypermedia/logout"
                     hx-redirect="true">

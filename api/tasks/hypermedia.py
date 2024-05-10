@@ -18,6 +18,7 @@ from sqlalchemy.orm import Session
 
 import api.tasks.commands as commands
 import api.tasks.queries as queries
+import api.tasks.subtasks.commands as subtask_commands
 import api.tasks.subtasks.queries as subtask_queries
 from api.database import get_db
 from api.utils import get_user_id_by_auth_token
@@ -52,6 +53,27 @@ def get_tasks(
 
 
 @get(
+    path="/list",
+    dependencies={"session": Provide(get_db, sync_to_thread=False)},
+)
+def get_tasks_list(
+    session: Session,
+    request: HTMXRequest,
+) -> Template:
+    return HTMXTemplate(
+        template_name="list.tasks.get.html",
+        context={
+            "tasks": queries.get_tasks(
+                session=session,
+                user_id=get_user_id_by_auth_token(
+                    token=request.cookies["X-AUTH"],
+                ),
+            )
+        },
+    )
+
+
+@get(
     path="/{task_id:int}/subtasks",
     dependencies={"session": Provide(get_db, sync_to_thread=False)},
 )
@@ -76,6 +98,34 @@ def get_subtasks_by_task(
             )
         },
     )
+
+
+@post(
+    path="/subtasks/create",
+    dependencies={"session": Provide(get_db, sync_to_thread=False)},
+)
+def create_subtask(
+    session: Session,
+    request: HTMXRequest,
+    data: dict = Body(media_type=RequestEncodingType.URL_ENCODED),
+) -> ClientRedirect | Reswap:
+    subtask = subtask_commands.create_subtask(
+        session=session,
+        user_id=get_user_id_by_auth_token(token=request.cookies["X-AUTH"]),
+        title=data["title"],
+        content=data["content"] if data["content"] else None,
+        status_id=data["status"],
+        task_id=data["task_id"],
+    )
+    if isinstance(subtask, int):
+        return ClientRedirect(
+            redirect_to="/src/main.html",
+        )
+    else:
+        return Reswap(
+            method="outerHTML",
+            content='<span id="error">One and/or more elements of the form are incorrect</span>',
+        )
 
 
 @get(
@@ -163,6 +213,20 @@ def get_task_edit_form(
 
 
 @get(
+    path="/subtasks/form/{subtask_id:int}",
+    dependencies={"session": Provide(get_db, sync_to_thread=False)},
+)
+def get_subtask_edit_form(
+    request: HTMXRequest,
+    subtask_id: int,
+) -> Template:
+    return HTMXTemplate(
+        template_name="subtasks.edit.form.html",
+        context={"subtask_id": subtask_id},
+    )
+
+
+@get(
     path="/assign/form/{project_id:int}/{user_id:str}",
     dependencies={"session": Provide(get_db, sync_to_thread=False)},
 )
@@ -220,6 +284,35 @@ def update_task(
 
 
 @post(
+    path="/subtasks/{subtask_id:int}",
+    dependencies={"session": Provide(get_db, sync_to_thread=False)},
+)
+def update_subtask(
+    session: Session,
+    request: HTMXRequest,
+    subtask_id: int,
+    data: dict = Body(media_type=RequestEncodingType.URL_ENCODED),
+) -> ClientRedirect | Reswap:
+    task_edit = subtask_commands.update_subtask(
+        session=session,
+        user_id=get_user_id_by_auth_token(token=request.cookies["X-AUTH"]),
+        title=data["title"],
+        content=data["content"],
+        status_id=int(data["status"]),
+        subtask_id=subtask_id,
+    )
+    if task_edit == "Success":
+        return ClientRedirect(
+            redirect_to="/src/main.html",
+        )
+    else:
+        return Reswap(
+            method="innerHTML",
+            content='<span id="error">One and/or more elements of the form are incorrect</span>',
+        )
+
+
+@post(
     path="/assign/{project_id:int}/{user_id:str}",
     dependencies={"session": Provide(get_db, sync_to_thread=False)},
 )
@@ -266,6 +359,10 @@ hypermedia_tasks_router = Router(
         get_assign_tasks,
         assign_task,
         get_subtasks_by_task,
+        get_tasks_list,
+        create_subtask,
+        get_subtask_edit_form,
+        update_subtask,
     ],
     tags=[
         "Tasks",

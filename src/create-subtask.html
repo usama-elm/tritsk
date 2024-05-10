@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Create Subtask</title>
+    <script src="js/htmx.js"></script></head>
+<body>
+    <h1>Create Subtask</h1>
+    <form action="/hypermedia/tasks/subtasks/create" 
+          method="post" 
+          hx-boost="true" 
+          hx-swap="outerHTML"
+          hx-target="#another-div">
+          <div id="list-tasks" hx-get="/hypermedia/tasks/list" hx-swap="innerHTML" hx-trigger="load" hx-target="#list-tasks">
+        </div>
+        <label for="title">title:</label>
+        <input type="text" 
+               id="title" 
+               name="title" required><br>
+        <label for="content">content:</label>
+        <input type="text" 
+               id="content" 
+               name="content" required><br>
+       <div id="list-status" hx-get="/hypermedia/status/list" hx-swap="innerHTML" hx-trigger="load" hx-target="#list-status">
+       </div>
+        <button type="submit">Create Task</button>
+    </form>
+    <div id="another-div"></div>
+</form>
+</body>
+</html>

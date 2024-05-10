@@ -55,7 +55,7 @@ def get_subtasks_by_task(
     status_id: int | None = None,
 ) -> list[dict[str, Any] | None]:
     stmt = (
-        select(subtasks)
+        select(subtasks, status.c.title)
         .join(
             task_user_rel,
             subtasks.c.task_id == task_user_rel.c.task_id,
@@ -70,7 +70,7 @@ def get_subtasks_by_task(
 
     if ids is not None:
         stmt = stmt.where(tasks.c.id._in(ids))
-    if status is not None:
+    if status_id is not None:
         stmt = stmt.where(tasks.c.status_id == status_id)
 
     tasks_dict = [

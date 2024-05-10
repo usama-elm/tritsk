@@ -49,10 +49,10 @@ def update_subtask(
     session: Session,
     user_id: str,
     subtask_id: int,
-    title: str | None = None,
+    title: str,
     content: str | None = None,
     status_id: int | None = None,
-) -> int:
+) -> str:
     values: dict = {}
     if title:
         values["title"] = title
@@ -86,7 +86,7 @@ def update_subtask(
                 status_code=400,
             )
         session.commit()
-        return subtask_id
+        return "Success"
     except SQLAlchemyError as e:
         session.rollback()
         raise HTTPException(

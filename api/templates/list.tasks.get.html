@@ -1,0 +1,6 @@
+<label for="choices">Choose a task:</label>
+<select id="task_id" name="task_id">
+    {% for task in tasks %}
+        <option value="{{ task.id }}">{{ task.title }}</option>
+    {% endfor %}
+</select>

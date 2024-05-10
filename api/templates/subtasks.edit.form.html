@@ -1,4 +1,4 @@
-<form action="/hypermedia/tasks/{{id}}" 
+<form action="/hypermedia/tasks/subtasks/{{subtask_id}}" 
 method="post" 
 hx-boost="true" 
 hx-swap="outerHTML"
@@ -7,14 +7,12 @@ hx-target="#another-div">
 <input type="text" 
      id="title" 
      name="title"><br>
-     <div id="list-priorities-{{id}}" hx-get="/hypermedia/priorities/list" hx-swap="innerHTML" hx-trigger="load" hx-target="#list-priorities-{{id}}">
-     </div>
      <div id="list-status-{{id}}" hx-get="/hypermedia/status/list" hx-swap="innerHTML" hx-trigger="load" hx-target="#list-status-{{id}}">
       </div>
-<label for="description">description:</label>
+<label for="content">content:</label>
 <input type="text" 
-     id="description" 
-     name="description"><br>
-<button type="submit">Edit Task</button>
+     id="content" 
+     name="content"><br>
+<button type="submit">Edit Priority</button>
 </form>
 <div id="another-div"></div>
