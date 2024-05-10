@@ -18,6 +18,7 @@ from sqlalchemy.orm import Session
 
 import api.tasks.commands as commands
 import api.tasks.queries as queries
+import api.tasks.subtasks.queries as subtask_queries
 from api.database import get_db
 from api.utils import get_user_id_by_auth_token
 
@@ -33,7 +34,6 @@ def get_tasks(
     project_id: int | None = None,
     priority: int | None = None,
     status: int | None = None,
-    # data: dict = Body(media_type=RequestEncodingType.URL_ENCODED),
 ) -> Template:
     return HTMXTemplate(
         template_name="tasks.get.html",
@@ -46,7 +46,33 @@ def get_tasks(
                 ),
                 project_id=project_id,
                 priority=priority,
-                status=status,
+            )
+        },
+    )
+
+
+@get(
+    path="/{task_id:int}/subtasks",
+    dependencies={"session": Provide(get_db, sync_to_thread=False)},
+)
+def get_subtasks_by_task(
+    session: Session,
+    request: HTMXRequest,
+    task_id: int,
+    ids: list[int] | None = None,
+    status: int | None = None,
+) -> Template:
+    return HTMXTemplate(
+        template_name="subtasks.get.html",
+        context={
+            "subtasks": subtask_queries.get_subtasks_by_task(
+                session=session,
+                user_id=get_user_id_by_auth_token(
+                    token=request.cookies["X-AUTH"],
+                ),
+                task_id=task_id,
+                ids=ids,
+                status_id=status,
             )
         },
     )
@@ -239,6 +265,7 @@ hypermedia_tasks_router = Router(
         get_tasks_projects,
         get_assign_tasks,
         assign_task,
+        get_subtasks_by_task,
     ],
     tags=[
         "Tasks",

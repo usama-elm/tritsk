@@ -1,3 +1,4 @@
+<br>
 <div>
     <h1>Tasks</h1>
     <ul>
@@ -11,6 +12,8 @@
             {% else %}
             <br>Deadline: Not set
             {% endif %}
+            <div hx-get="/hypermedia/tasks/{{task.id}}/subtasks" hx-swap="outerHTML" hx-trigger="load">
+            </div>
         </li>
         <button hx-delete="/hypermedia/tasks/{{task.id}}" 
                 hx-trigger="click"
@@ -28,3 +31,4 @@
         {% endfor %}
     </ul>
 </div>
+<br>

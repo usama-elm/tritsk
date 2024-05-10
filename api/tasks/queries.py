@@ -34,7 +34,6 @@ def get_task_by_id(
             detail="Task does not correspond to your user",
             status_code=400,
         )
-    print()
     task_dict = {
         "id": task.t.id,
         "title": task.t.title,
@@ -75,7 +74,7 @@ def get_tasks(
     if priority is not None:
         stmt = stmt.where(tasks.c.priority_id == priority)
     if status is not None:
-        stmt = stmt.where(tasks.c.status_id == status)
+        stmt = stmt.where(tasks.c.state_id == status)
     if deadline is not None:
         stmt = stmt.where(tasks.c.deadline <= deadline)
 

@@ -59,6 +59,21 @@ tasks = Table(
     Column("status_id", Integer, ForeignKey("status.id"), key="status_id"),
 )
 
+subtasks = Table(
+    "sub_tasks",
+    tables_metadata,
+    Column("id", BigInteger, primary_key=True, key="id"),
+    Column("task_id", Integer, ForeignKey("tasks.id"), key="task_id"),
+    Column("title", String(200), key="title"),
+    Column("content", Text, key="content"),
+    Column(
+        "date_creation",
+        DateTime(timezone=True),
+        key="date_creation",
+    ),
+    Column("status_id", Integer, ForeignKey("status.id"), key="status_id"),
+)
+
 projects = Table(
     "projects",
     tables_metadata,

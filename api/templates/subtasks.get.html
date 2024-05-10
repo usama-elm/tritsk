@@ -1,0 +1,19 @@
+<div>
+    <h2>Subtasks</h2>
+    <ul>
+        {% for subtask in subtasks %}
+        <li id="{{subtask.id}}" hx-trigger="click" hx-swap="outerHTML">
+            <strong>{{ subtask.title }}</strong> - {{ subtask.content }}
+            <br>Created: {{ subtask.date_creation }}
+        </li>
+        <button hx-delete="/hypermedia/tasks/{{subtask.task_id}}/subtask/{{subtask.id}}" 
+                hx-trigger="click"
+                hx-swap="outerHTML">
+        Delete Task
+        </button>  
+        <!-- here lies the edit button -->
+        <div id="edit-task-form-{{subtask.id}}"></div>
+        {% endfor %}
+    </ul>
+</div>
+<br>
