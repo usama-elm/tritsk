@@ -162,7 +162,6 @@ hypermedia_users_router = Router(
         current_user,
     ],
     tags=[
-        "Hypermedia",
-        "Auth",
+        "Users",
     ],
 )

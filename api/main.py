@@ -10,15 +10,11 @@ from litestar.template.config import TemplateConfig
 
 from api.auth.auth import jwt_auth
 from api.auth.hypermedia import hypermedia_auth_router
-from api.auth.router import auth_router
 from api.priorities.hypermedia import hypermedia_priorities_router
 from api.projects.hypermedia import hypermedia_projects_router
-from api.projects.router import project_router
 from api.status.hypermedia import hypermedia_status_router
 from api.tasks.hypermedia import hypermedia_tasks_router
-from api.tasks.router import task_router
 from api.users.hypermedia import hypermedia_users_router
-from api.users.router import user_router
 
 openapi_config = OpenAPIConfig(
     title="TriTsk",
@@ -27,10 +23,6 @@ openapi_config = OpenAPIConfig(
 
 app = Litestar(
     route_handlers=[
-        auth_router,
-        task_router,
-        user_router,
-        project_router,
         hypermedia_tasks_router,
         hypermedia_auth_router,
         hypermedia_users_router,

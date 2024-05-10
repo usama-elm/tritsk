@@ -41,7 +41,6 @@ hypermedia_status_router = Router(
         give_list_slider,
     ],
     tags=[
-        "Hypermedia",
         "Status",
     ],
 )

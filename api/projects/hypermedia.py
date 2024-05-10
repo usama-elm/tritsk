@@ -158,7 +158,6 @@ hypermedia_projects_router = Router(
         get_projects_list,
     ],
     tags=[
-        "Hypermedia",
         "Projects",
     ],
 )

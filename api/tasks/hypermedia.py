@@ -241,7 +241,6 @@ hypermedia_tasks_router = Router(
         assign_task,
     ],
     tags=[
-        "Hypermedia",
         "Tasks",
     ],
 )

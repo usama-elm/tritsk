@@ -59,7 +59,6 @@ hypermedia_auth_router = Router(
         logout,
     ],
     tags=[
-        "Hypermedia",
         "Auth",
     ],
 )

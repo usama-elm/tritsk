@@ -148,7 +148,6 @@ hypermedia_priorities_router = Router(
         give_list_slider,
     ],
     tags=[
-        "Hypermedia",
-        "Tasks",
+        "Priorities",
     ],
 )
