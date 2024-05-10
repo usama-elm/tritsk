@@ -60,7 +60,7 @@ tasks = Table(
 )
 
 subtasks = Table(
-    "sub_tasks",
+    "subtasks",
     tables_metadata,
     Column("id", BigInteger, primary_key=True, key="id"),
     Column("task_id", Integer, ForeignKey("tasks.id"), key="task_id"),
