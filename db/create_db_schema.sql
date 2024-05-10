@@ -54,5 +54,4 @@ CREATE TABLE IF NOT EXISTS task_user_rel (
     project_id BIGINT REFERENCES projects(id) ON UPDATE CASCADE ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE,
     CONSTRAINT unique_task_user_project UNIQUE (task_id, user_id, project_id)
-
 );
