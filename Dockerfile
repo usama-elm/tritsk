@@ -2,10 +2,7 @@
 FROM python:3.11-slim-bookworm
 
 # Install curl and other dependencies
-RUN apt-get update && apt-get install -y curl python3-pip
-
-# For debugging issues
-RUN apt-get update && apt-get install -y curl telnet iputils-ping
+RUN apt-get update && apt-get install -y curl python3-pip openssl
 
 # Create a directory for Poetry
 RUN mkdir -p /opt/poetry && \
@@ -25,6 +22,13 @@ COPY pyproject.toml poetry.lock* /app/
 # Disable virtualenv creation by poetry to install dependencies globally
 RUN poetry config virtualenvs.create false
 RUN poetry install --no-dev
+
+# Generate JWT secret and set it as an environment variable
+RUN openssl rand -hex 32 | tee /app/JWT_SECRET.txt && \
+    echo "JWT_SECRET=$(cat /app/JWT_SECRET.txt)" >> /etc/environment
+
+# Load the environment variables
+ENV $(cat /etc/environment)
 
 # Copy the rest of the application
 COPY . /app

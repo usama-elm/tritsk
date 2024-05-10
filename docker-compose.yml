@@ -24,9 +24,10 @@ services:
       DB_USER: "tritsk"
       DB_PASSWORD: "0000"
       DB_NAME: "tritsk"
-      JWT_SECRET: "56ca36aabb26efa8634eb53db6cf021052b81078f230f8191a13ca01b6c12b1d"
+
       ALGORITHM: "HS256"
       ACCESS_TOKEN_EXPIRE_MINUTES: "30"
+      
     networks:
       - app-network
 
