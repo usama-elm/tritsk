@@ -1,7 +1,7 @@
 import calendar
 from datetime import datetime
 
-from litestar import Router, delete, get, post
+from litestar import Response, Router, delete, get, post, status_codes
 from litestar.contrib.htmx.request import HTMXRequest
 from litestar.contrib.htmx.response import (
     ClientRedirect,
@@ -13,7 +13,7 @@ from litestar.contrib.htmx.response import (
 from litestar.di import Provide
 from litestar.enums import RequestEncodingType
 from litestar.params import Body
-from litestar.response import Template
+from litestar.response import File, Template
 from sqlalchemy import exc
 from sqlalchemy.orm import Session
 
@@ -51,6 +51,50 @@ def get_tasks(
                 status=status,
             )
         },
+    )
+
+
+@get(
+    path="/csv",
+    dependencies={"session": Provide(get_db, sync_to_thread=False)},
+    media_type="text/csv",
+)
+def get_export_tasks(
+    session: Session,
+    request: HTMXRequest,
+    ids: list[int] | None = None,
+    project_id: int | None = None,
+    priority: int | None = None,
+    status: int | None = None,
+) -> Response:
+    csv_path = queries.export_tasks_to_csv(
+        ids=ids,
+        session=session,
+        user_id=get_user_id_by_auth_token(
+            token=request.cookies["X-AUTH"],
+        ),
+        project_id=project_id,
+        priority=priority,
+        status=status,
+    )
+    response = Response(
+        content="Redirecting to the file...",
+        status_code=status_codes.HTTP_302_FOUND,
+    )
+    response.headers["HX-Redirect"] = f"/hypermedia/tasks/download/{csv_path}"
+    return response
+
+
+@get(path="/download/{path:str}")
+def serve_csv_file(
+    request: HTMXRequest,
+    path: str,
+) -> File:
+    return File(
+        path="/tmp/" + path,
+        filename=f"tasks-{get_user_id_by_auth_token(token=request.cookies['X-AUTH'])}-{datetime.now().strftime('%d-%m')}",
+        media_type="text/csv",
+        content_disposition_type="attachment",
     )
 
 
@@ -405,6 +449,8 @@ hypermedia_tasks_router = Router(
         create_subtask,
         get_subtask_edit_form,
         update_subtask,
+        get_export_tasks,
+        serve_csv_file,
         get_calendar,
     ],
     tags=[

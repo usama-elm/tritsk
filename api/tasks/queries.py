@@ -1,5 +1,7 @@
 import calendar
+import csv
 from datetime import datetime
+from tempfile import NamedTemporaryFile
 from typing import Any
 
 from litestar.exceptions import HTTPException
@@ -97,6 +99,52 @@ def get_tasks(
         for row in session.execute(stmt).mappings()
     ]
     return tasks_dict
+
+
+def export_tasks_to_csv(
+    session: Session,
+    user_id: str,
+    project_id: int | None = None,
+    ids: list[int] | None = None,
+    priority: int | None = None,
+    status: int | None = None,
+    deadline: datetime | None = None,
+) -> str:
+    # Define the CSV header
+    headers = ["id", "title", "content", "date_creation", "priority_id", "deadline"]
+
+    # Fetch tasks based on provided parameters
+    tasks = get_tasks(
+        session=session,
+        user_id=user_id,
+        project_id=project_id,
+        ids=ids,
+        priority=priority,
+        status=status,
+        deadline=deadline,
+    )
+
+    # Create a temporary file
+    with NamedTemporaryFile(
+        mode="w+", newline="", encoding="utf-8", delete=False
+    ) as temp:
+        writer = csv.DictWriter(temp, fieldnames=headers)
+        writer.writeheader()
+
+        for task in tasks:
+            if task:
+                writer.writerow(
+                    {
+                        "id": task["id"],
+                        "title": task["title"],
+                        "content": task["content"],
+                        "date_creation": task["date_creation"],
+                        "priority_id": task["priority_id"],
+                        "deadline": task["deadline"],
+                    }
+                )
+
+        return temp.name.replace("/tmp/", "")
 
 
 def get_tasks_by_project(
