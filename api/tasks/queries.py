@@ -1,3 +1,4 @@
+import calendar
 from datetime import datetime
 from typing import Any
 
@@ -67,15 +68,15 @@ def get_tasks(
         .where(task_user_rel.c.user_id == user_id)
     )
 
-    if ids is not None:
+    if ids:
         stmt = stmt.where(tasks.c.id._in(ids))
-    if project_id is not None:
+    if project_id and project_id != -1:
         stmt = stmt.where(task_user_rel.c.project_id == project_id)
-    if priority is not None:
+    if priority and priority != -1:
         stmt = stmt.where(tasks.c.priority_id == priority)
-    if status is not None:
-        stmt = stmt.where(tasks.c.state_id == status)
-    if deadline is not None:
+    if status and status != -1:
+        stmt = stmt.where(tasks.c.status_id == status)
+    if deadline:
         stmt = stmt.where(tasks.c.deadline <= deadline)
 
     tasks_dict = [
@@ -171,3 +172,32 @@ def get_tasks_by_project_user(
             }
         )
     return tasks_by_projects
+
+
+def get_tasks_for_calendar(
+    session: Session,
+    year: int,
+    month: int,
+):
+    start_date = datetime(
+        year=year,
+        month=month,
+        day=1,
+    )
+    end_date = datetime(
+        year=year,
+        month=month,
+        day=calendar.monthrange(year, month)[1],
+    )
+    try:
+        stmt = select(tasks).where(
+            and_(
+                tasks.c.deadline >= start_date,
+                tasks.c.deadline <= end_date,
+            )
+        )
+        tasks_list = session.execute(stmt).fetchall()
+        print()
+    finally:
+        session.close()
+    return tasks_list

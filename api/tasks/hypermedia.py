@@ -1,3 +1,4 @@
+import calendar
 from datetime import datetime
 
 from litestar import Router, delete, get, post
@@ -47,6 +48,7 @@ def get_tasks(
                 ),
                 project_id=project_id,
                 priority=priority,
+                status=status,
             )
         },
     )
@@ -251,6 +253,46 @@ def get_assign_tasks(
     )
 
 
+@get(
+    path="/calendar/{year:int}/{month:int}",
+    dependencies={"session": Provide(get_db, sync_to_thread=False)},
+)
+def get_calendar(
+    session: Session,
+    request: HTMXRequest,
+    year: int,
+    month: int,
+) -> Template:
+    tasks = queries.get_tasks_for_calendar(
+        session=session,
+        year=year,
+        month=month,
+    )
+    month_range = calendar.monthrange(year, month)
+    days_in_month = month_range[1]
+
+    tasks_by_date = {day: [] for day in range(1, days_in_month + 1)}
+    for task in tasks:
+        tasks_by_date[task.date_creation.day].append(task)
+
+    # Weekday names header
+    weekday_names = [
+        calendar.day_name[(month_range[0] + i) % 7] for i in range(days_in_month)
+    ]
+
+    return HTMXTemplate(
+        template_name="calendar.html",
+        context={
+            "request": request,
+            "year": year,
+            "month": month,
+            "tasks_by_date": tasks_by_date,
+            "days_in_month": days_in_month,
+            "weekday_names": weekday_names[:7],
+        },
+    )
+
+
 @post(path="{id:int}", dependencies={"session": Provide(get_db, sync_to_thread=False)})
 def update_task(
     session: Session,
@@ -263,7 +305,7 @@ def update_task(
         user_id=get_user_id_by_auth_token(token=request.cookies["X-AUTH"]),
         id=id,
         title=data["title"],
-        content=data["content"],
+        content=data["description"],
         priority_id=data["priority"],
         deadline=(
             datetime.strptime(data["deadline"], "%Y-%m-%dT%H:%M").date()
@@ -363,6 +405,7 @@ hypermedia_tasks_router = Router(
         create_subtask,
         get_subtask_edit_form,
         update_subtask,
+        get_calendar,
     ],
     tags=[
         "Tasks",

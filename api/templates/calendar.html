@@ -1,0 +1,39 @@
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Calendar for {{ year }}/{{ month }}</title>
+</head>
+<body>
+    <h1>{{ year }} - {{ month }}</h1>
+    <table>
+        <thead>
+            <tr>
+                {% for day_name in weekday_names %}
+                    <th>{{ day_name }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% set days = range(1, days_in_month + 1) %}
+            {% set weeks = range(0, (days_in_month // 7) + 1) %}
+            {% for week in weeks %}
+                <tr>
+                    {% for day in range(week * 7 + 1, (week + 1) * 7 + 1) %}
+                        {% if day <= days_in_month %}
+                            <td>
+                                {{ day }}<br>
+                                {% if day in tasks_by_date %}
+                                    {% for task in tasks_by_date[day] %}
+                                        <span class="task">{{ task.title }}</span><br>
+                                    {% endfor %}
+                                {% endif %}
+                            </td>
+                        {% else %}
+                            <td></td>
+                        {% endif %}
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
