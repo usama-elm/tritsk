@@ -1,51 +1,40 @@
 from litestar.exceptions import HTTPException
 from sqlalchemy import and_, delete, insert, update
-from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
+from toolz import curry
 
+from api.projects.services import check_user_id, execute_statement, handle_exceptions
 from api.tables import project_user_rel, projects
 
 
+# Create project
+@curry
 def create_project(
     session: Session,
     user_id: str,
     name: str,
     description: str | None = None,
 ) -> int:
-    try:
-        if not user_id:
-            raise HTTPException(
-                detail="Not logged in",
-                status_code=400,
+    user_check = check_user_id(user_id)
+
+    match (user_check, description):
+        case (None, _):
+            raise HTTPException(detail="Not logged in", status_code=400)
+        case (_, _):
+            stmt = insert(projects).values(name=name, description=description)
+            project = handle_exceptions(session, execute_statement, session, stmt)
+            session.flush()
+            stmt_rel = insert(project_user_rel).values(
+                project_id=project.inserted_primary_key[0],
+                user_id=user_id,
+                role="chief",
             )
-        stmt = insert(projects).values(
-            name=name,
-            description=description,
-        )
-        project = session.execute(stmt)
-        session.flush()
-        stmt_rel = insert(project_user_rel).values(
-            project_id=project.inserted_primary_key[0],
-            user_id=user_id,
-            role="chief",
-        )
-
-        session.execute(stmt_rel)
-        session.commit()
-        return project.inserted_primary_key[0]
-    except SQLAlchemyError as e:
-        session.rollback()
-        raise HTTPException(
-            detail=f"Failed to execute database operation: {e}",
-            status_code=400,
-        )
-    except Exception:
-        raise HTTPException(
-            detail="Invalid information",
-            status_code=400,
-        )
+            handle_exceptions(session, execute_statement, session, stmt_rel)
+            return project.inserted_primary_key[0]
 
 
+# Update project
+@curry
 def update_project(
     session: Session,
     user_id: str,
@@ -53,63 +42,61 @@ def update_project(
     name: str | None = None,
     description: str | None = None,
 ) -> str:
-    values: dict = {}
-    if name:
-        values["name"] = name
-    if description:
-        values["description"] = description
+    user_check = check_user_id(user_id)
+    values = {
+        key: value
+        for key, value in {"name": name, "description": description}.items()
+        if value is not None
+    }
+
     if not values:
         raise ValueError("No information given for an update")
-    if not user_id:
-        raise HTTPException(
-            detail="Not logged in",
-            status_code=400,
-        )
-    try:
-        stmt = (
-            update(projects)
-            .where(
+
+    match user_check:
+        case None:
+            raise HTTPException(detail="Not logged in", status_code=400)
+        case _:
+            stmt = (
+                update(projects)
+                .where(
+                    and_(
+                        projects.c.id == project_id,
+                        projects.c.id == project_user_rel.c.project_id,
+                        project_user_rel.c.user_id == user_id,
+                    )
+                )
+                .values(**values)
+            )
+            result = handle_exceptions(session, execute_statement, session, stmt)
+            if result.rowcount == 0:
+                raise HTTPException(
+                    detail="Project does not correspond to your user", status_code=400
+                )
+            return "Success"
+
+
+# Delete project
+@curry
+def delete_project(
+    session: Session,
+    user_id: str,
+    project_id: int,
+) -> None:
+    user_check = check_user_id(user_id)
+
+    match (user_check, project_id):
+        case (None, _):
+            raise HTTPException(detail="Not logged in", status_code=400)
+        case (_, _):
+            stmt = delete(projects).where(
                 and_(
                     projects.c.id == project_id,
                     projects.c.id == project_user_rel.c.project_id,
                     project_user_rel.c.user_id == user_id,
                 )
             )
-            .values(**values)
-        )
-        result = session.execute(stmt)
-        if result.rowcount == 0:
-            raise HTTPException(
-                detail="Project does not correspond to your user",
-                status_code=400,
-            )
-        session.commit()
-        return "Success"
-    except SQLAlchemyError as e:
-        session.rollback()
-        raise HTTPException(
-            detail=f"Failed to execute database operation: {e}",
-            status_code=400,
-        )
-    except Exception as ex:
-        raise HTTPException(
-            detail=f"Invalid information: {ex}",
-            status_code=400,
-        )
-
-
-def delete_project(session: Session, user_id: str, project_id: int) -> None:
-    stmt = delete(projects).where(
-        and_(
-            projects.c.id == project_id,
-            projects.c.id == project_user_rel.c.project_id,
-            project_user_rel.c.user_id == user_id,
-        )
-    )
-    result = session.execute(stmt)
-    if result.rowcount == 0:
-        raise HTTPException(
-            detail="Project does not correspond to your user",
-            status_code=400,
-        )
-    session.commit()
+            result = handle_exceptions(session, execute_statement, session, stmt)
+            if result.rowcount == 0:
+                raise HTTPException(
+                    detail="Project does not correspond to your user", status_code=400
+                )
