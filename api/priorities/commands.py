@@ -1,11 +1,19 @@
 from litestar.exceptions import HTTPException
 from sqlalchemy import and_, delete, insert, update
-from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
+from toolz import curry
 
+from api.priorities.services import (
+    check_user_id,
+    create_values_map,
+    execute_statement,
+    handle_exceptions,
+)
 from api.tables import priority
 
 
+# Create priority
+@curry
 def create_priority(
     session: Session,
     user_id: str,
@@ -13,36 +21,20 @@ def create_priority(
     rank: str,
     description: int | None = None,
 ) -> int:
-    try:
-        if not user_id:
-            raise HTTPException(
-                detail="Not logged in",
-                status_code=400,
-            )
-        values = {
-            "title": title,
-            "rank": rank,
-        }
-        if description:
-            values["description"] = description
+    user_check = check_user_id(user_id)
+    values = create_values_map(title, rank, description)
 
-        stmt = insert(priority).values(**values)
-        task = session.execute(stmt)
-        session.commit()
-        return task.inserted_primary_key[0]
-    except SQLAlchemyError as e:
-        session.rollback()
-        raise HTTPException(
-            detail=f"Failed to execute database operation: {e}",
-            status_code=400,
-        )
-    except Exception:
-        raise HTTPException(
-            detail="Invalid information",
-            status_code=400,
-        )
+    match (user_check, description):
+        case (None, _):
+            raise HTTPException(detail="Not logged in", status_code=400)
+        case (_, _):
+            stmt = insert(priority).values(**values)
+            task = handle_exceptions(session, execute_statement, session, stmt)
+            return task.inserted_primary_key[0]
 
 
+# Update priority
+@curry
 def update_priority(
     session: Session,
     user_id: str,
@@ -51,66 +43,41 @@ def update_priority(
     rank: str | None = None,
     description: int | None = None,
 ) -> int:
-    values: dict = {}
-    if title:
-        values["title"] = title
-    if rank:
-        values["rank"] = rank
-    if description:
-        values["description"] = description
+    user_check = check_user_id(user_id)
+    values = create_values_map(title, rank, description)
+
     if not values:
         raise ValueError("No information given for an update")
-    if not user_id:
-        raise HTTPException(
-            detail="Not logged in",
-            status_code=400,
-        )
-    try:
-        stmt = (
-            update(priority).where(and_(priority.c.id == priority_id)).values(**values)
-        )
-        result = session.execute(stmt)
-        if result.rowcount == 0:
-            raise HTTPException(
-                detail="Priority does not correspond to your user",
-                status_code=400,
+
+    match user_check:
+        case None:
+            raise HTTPException(detail="Not logged in", status_code=400)
+        case _:
+            stmt = (
+                update(priority)
+                .where(and_(priority.c.id == priority_id))
+                .values(**values)
             )
-        session.commit()
-        return id
-    except SQLAlchemyError as e:
-        session.rollback()
-        raise HTTPException(
-            detail=f"Failed to execute database operation: {e}",
-            status_code=400,
-        )
-    except Exception as ex:
-        raise HTTPException(
-            detail=f"Invalid information: {ex}",
-            status_code=400,
-        )
+            result = handle_exceptions(session, execute_statement, session, stmt)
+            if result.rowcount == 0:
+                raise HTTPException(
+                    detail="Priority does not correspond to your user", status_code=400
+                )
+            return priority_id
 
 
-def delete_priority(
-    session: Session,
-    user_id: str,
-    priority_id: int,
-) -> None:
-    try:
-        if not user_id:
-            raise HTTPException(
-                detail="Not logged in",
-                status_code=400,
-            )
-        stmt = delete(priority).where(and_(priority.c.priority_id == priority_id))
-        result = session.execute(stmt)
-        if result.rowcount == 0:
-            raise HTTPException(
-                detail="Priority does not correspond to your user",
-                status_code=400,
-            )
-        session.commit()
-    except Exception as ex:
-        raise HTTPException(
-            detail=f"Invalid information: {ex}",
-            status_code=400,
-        )
+# Delete priority
+@curry
+def delete_priority(session: Session, user_id: str, priority_id: int) -> None:
+    user_check = check_user_id(user_id)
+
+    match (user_check, priority_id):
+        case (None, _):
+            raise HTTPException(detail="Not logged in", status_code=400)
+        case (_, _):
+            stmt = delete(priority).where(and_(priority.c.priority_id == priority_id))
+            result = handle_exceptions(session, execute_statement, session, stmt)
+            if result.rowcount == 0:
+                raise HTTPException(
+                    detail="Priority does not correspond to your user", status_code=400
+                )
