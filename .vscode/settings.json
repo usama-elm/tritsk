@@ -1,0 +1,14 @@
+{ 
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "source.organizeImports": "explicit",
+          "source.unusedImports": "explicit"
+        },
+      },
+    "isort.args":["--profile", "black"],
+    "editor.fontFamily": "'FiraCode Nerd Font', monospace",
+    "python.analysis.typeCheckingMode": "off",
+    "python.analysis.autoImportCompletions": true
+}

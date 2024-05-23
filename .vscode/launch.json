@@ -1,0 +1,35 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Litestar",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "litestar",
+            "args": [
+                "--app",
+                "api.main:app",
+                "run",
+                "--reload",
+                "--debug",
+            ],
+            "env": {
+                "LITESTAR_WARN_IMPLICIT_SYNC_TO_THREAD" : "0"
+            },
+            "jinja": true
+        },
+        {
+            "name": "HTMX Web Server",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "http.server",
+            "args": [
+                "8920",
+                "-d",
+                "${workspaceFolder}/src"
+            ],
+            "console": "integratedTerminal",
+            "purpose": ["debug-in-terminal"]
+        }
+    ]
+}
