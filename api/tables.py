@@ -7,14 +7,15 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Integer,
-    MetaData,
     SmallInteger,
     String,
     Table,
     Text,
 )
+from sqlalchemy.orm import registry
 
-tables_metadata = MetaData()
+tables = registry()
+tables_metadata = tables.metadata
 
 users = Table(
     "users",
